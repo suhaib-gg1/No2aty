@@ -195,32 +195,21 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        const socket = io();
-        socket.on("initialData", (data) => {
-            students = data.students;
-            calculateRanks();
-            updateDisplay();
-        });
-        socket.on("dataUpdated", (data) => {
-            students = data.students;
-            calculateRanks();
-            updateDisplay();
-        });
-    </script>
-</body>
-</html>
-<script>
-et.on("initialData", (data) => {
-  students = data.students;
-  updateDisplay(); // ⬅ تحديث الجدول
+       const socket = io(); // الاتصال بالخادم
+
+socket.on("dataUpdated", (newData) => {
+  console.log("تم استقبال تحديث جديد:", newData);
+  // هنا قم بتحديث الواجهة بالبيانات الجديدة
+  updateStudentList(newData.students);
 });
 
-// استقبال التحديثات في الوقت الفعلي
-socket.on("dataUpdated", (data) => {
-  students = data.students;
-  updateDisplay(); // ⬅ تحديث الجدول
-});
+function updateStudentList(students) {
+  const listContainer = document.getElementById("students-list");
+  listContainer.innerHTML = students.map(student => `
+    <li>${student.name} - ${student.grade}</li>
+  `).join("");
+}
+        
     </script>
-    
 </body>
 </html>

@@ -9,31 +9,16 @@ var currentStudentId = null;
 
 // دالة التهيئة الأولية
 function init() {
-    loadFromLocalStorage();
+    
     setupEventListeners();
     displayStudents();
     updateDate();
     document.getElementById('bulkClass').value = '1/1';
 }
 
-// دالة تحميل البيانات من التخزين المحلي
-function loadFromLocalStorage() {
-    var savedData = localStorage.getItem('studentsData');
-    if (savedData) {
-        var parsedData = JSON.parse(savedData);
-        students = parsedData.students || [];
-        nextId = parsedData.nextId || 1;
-    }
-}
+
 
 // دالة حفظ البيانات في التخزين المحلي
-function saveToLocalStorage() {
-    var dataToSave = {
-        students: students,
-        nextId: nextId
-    };
-    localStorage.setItem('studentsData', JSON.stringify(dataToSave));
-}
 
 // دالة عرض الطلاب في الجدول
 // دالة عرض الطلاب في الجدول
@@ -201,7 +186,6 @@ function updateStudentPoints(studentId, change, reason) {
     // تحديث العرض مباشرة دون إعادة تحميل الجدول
     document.getElementById('points-display-' + studentId).textContent = newPoints;
     
-    saveToLocalStorage();
     showAlert(`تم ${change > 0 ? 'إضافة' : 'خصم'} ${Math.abs(change)} نقطة`, 'success');
 }
 
@@ -441,7 +425,6 @@ function handleStudentSubmit(e) {
         });
     }
     
-    saveToLocalStorage();
     closeModal('studentModal');
     displayStudents();
     showAlert('تم حفظ التغييرات بنجاح', 'success');
@@ -454,7 +437,6 @@ function confirmDelete() {
     });
     
     selectedStudents.clear();
-    saveToLocalStorage();
     closeModal('deleteConfirmation');
     displayStudents();
     showAlert('تم الحذف بنجاح', 'success');
@@ -518,7 +500,6 @@ function handleBulkPoints(e) {
         student.points = newPoints;
     }
 
-    saveToLocalStorage();
     closeModal('bulkPointsModal');
     selectedStudents.clear();
     displayStudents();
@@ -577,7 +558,6 @@ function handleImport(e) {
             students = students.concat(importedStudents);
         }
 
-        saveToLocalStorage();
         closeModal('importModal');
         displayStudents();
         showAlert(`تم استيراد ${importedStudents.length} طالب`, 'success');

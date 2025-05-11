@@ -1,443 +1,0 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نقاطي - مدرسة ريادة التميز</title>
-   <link rel="stylesheet" href="css.css">
-</head>
-<body>
-    <!-- شريط التنقل -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="logo-container">
-                <img src="snapedit_1730146554309.png" alt="شعار المدرسة" class="school-logo">
-            </div>
-            <div class="date-display" id="currentDate"></div>
-            <div class="nav-links">
-                <a href="#" class="nav-link" title="تسجيل الخروج" onclick="confirmLogout()">تسجيل خروج</a>        </div>
-    </nav>
-
-    <!-- المحتوى الرئيسي -->
-    <div class="container">
-        <h1>نظام إدارة نقاط الطلاب</h1>
-        <img src="logo.png" alt="" style="height: 50px;">
-        <div class="control-panel">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="ابحث عن طالب...">
-                <select id="classFilter">
-                    <option value="">جميع الفصول</option>
-                    <option value="1/1">1/1</option>
-                    <option value="1/1">1/1</option>
-                    <option value="1/2">1/2</option>
-                    <option value="1/3">1/3</option>
-                    <option value="2/عام">2/عام</option>
-                    <option value="2/صحة">2/صحة</option>
-                    <option value="2/هندسة">2/هندسة</option>
-                    <option value="3/عام">3/عام</option>
-                    <option value="3/صحة">3/صحة</option>
-                    <option value="3/هندسة">3/هندسة</option>
-                </select>
-            </div>
-            <div class="action-buttons">
-                <button class="action-btn add-btn" id="addStudentBtn">
-                    <i>+</i> إضافة طالب
-                </button>
-                <button class="action-btn import-btn" id="importStudentsBtn">
-                    <i>↑</i> استيراد من إكسل
-                </button>
-                <button class="action-btn export-btn" id="exportStudentsBtn">
-                    <i>↓</i> تصدير لإكسل
-                </button>
-                <button class="action-btn bulk-btn" id="bulkPointsBtn">
-                    <i>±</i> نقاط جماعية
-                </button>
-                <button class="action-btn delete-selected-btn" id="deleteSelectedBtn">
-                    <i>🗑️</i> حذف المحدد
-                </button>
-            </div>
-        </div>
-        
-        <table id="studentsTable">
-            <thead>
-                <tr>
-                    <th width="5%"><input type="checkbox" id="selectAllCheckbox"></th>
-                    <th width="5%">الترتيب</th>
-                    <th width="15%">اسم الطالب</th>
-                    <th width="15%">إدارة النقاط</th> <!-- العمود الجديد -->
-                    <th width="5%">الفصل</th>
-                    <th width="20%">النقاط</th>
-                    <th width="5%">الإجراءات</th> <!-- تصغير عرض عمود الإجراءات -->
-                </tr>
-            </thead>
-            <tbody id="studentsList"></tbody>
-        </table>
-        
-    <!-- نوافذ منبثقة -->
-    <div id="studentModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="modal-title" id="modalTitle">إضافة طالب جديد</span>
-                <span class="close-btn" id="closeStudentModal">&times;</span>
-            </div>
-            <form id="studentForm">
-                <input type="hidden" id="studentId">
-                <div class="form-group">
-                    <label for="modalName">اسم الطالب:</label>
-                    <input type="text" id="modalName" required>
-                </div>
-                <div class="form-group">
-                    <label for="modalClass">الفصل:</label>
-                    <select id="modalClass" required>
-                        <option value="1/1">1/1</option>
-                        <option value="1/2">1/2</option>
-                        <option value="1/3">1/3</option>
-                        <option value="2/عام">2/عام</option>
-                        <option value="2/صحة">2/صحة</option>
-                        <option value="2/هندسة">2/هندسة</option>
-                        <option value="3/عام">3/عام</option>
-                        <option value="3/صحة">3/صحة</option>
-                        <option value="3/هندسة">3/هندسة</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="modalPoints">النقاط:</label>
-                    <input type="number" id="modalPoints" required>
-                </div>
-                <div class="form-group">
-                    <label for="modalDate">تاريخ التعديل:</label>
-                    <input type="date" id="modalDate" required>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="modal-btn cancel-btn" id="cancelStudentBtn">إلغاء</button>
-                    <button type="submit" class="modal-btn submit-btn" id="saveStudentBtn">حفظ</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="importModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="modal-title">استيراد بيانات من إكسل</span>
-                <span class="close-btn">&times;</span>
-            </div>
-            <form id="importForm">
-                <div class="file-upload-area">
-                    <div class="upload-icon">
-                        <i>📁</i>
-                    </div>
-                    <div class="upload-instructions">
-                        <p>اسحب وأسقط ملف إكسل هنا أو</p>
-                        <label for="excelFile" class="file-browse-btn">اختر ملف</label>
-                        <input type="file" id="excelFile" accept=".xlsx, .xls" required>
-                    </div>
-                    <div class="file-info" id="fileInfo">
-                        <span id="fileName">لم يتم اختيار ملف</span>
-                        <button type="button" id="clearFile" class="clear-file-btn">×</button>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="importClass">تعيين الفصل:</label>
-                    <select id="importClass" required>
-                        <!-- خيارات الفصول هنا -->
-                        <option value="1/1">1/1</option>
-                        <option value="1/2">1/2</option>
-                        <option value="1/3">1/3</option>
-                        <option value="2/عام">2/عام</option>
-                        <option value="2/صحة">2/صحة</option>
-                        <option value="2/هندسة">2/هندسة</option>
-                        <option value="3/عام">3/عام</option>
-                        <option value="3/صحة">3/صحة</option>
-                        <option value="3/هندسة">3/هندسة</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="importMethod">طريقة الاستيراد:</label>
-                    <select id="importMethod">
-                        <option value="append">إضافة إلى البيانات الحالية</option>
-                        <option value="replace">استبدال جميع البيانات الحالية</option>
-                    </select>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="modal-btn cancel-btn">إلغاء</button>
-                    <button type="submit" class="modal-btn submit-btn">استيراد</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- نافذة النقاط الجماعية -->
-    <div id="bulkPointsModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="modal-title">إدارة النقاط الجماعية</span>
-                <span class="close-btn" id="closeBulkModal">&times;</span>
-            </div>
-            <form id="bulkPointsForm">
-                <div class="form-group">
-                    <label for="bulkPointsAmount">عدد النقاط:</label>
-                    <input type="number" id="bulkPointsAmount" required>
-                </div>
-                <div class="form-group">
-                    <label for="bulkOperationType">نوع العملية:</label>
-                    <select id="bulkOperationType">
-                        <option value="add">إضافة نقاط</option>
-                        <option value="subtract">خصم نقاط</option>
-                    </select>
-                </div>
-                <!-- في نافذة النقاط الجماعية -->
-<div class="form-group">
-    <label for="bulkDate">تاريخ التعديل:</label>
-    <input type="date" id="bulkDate" required>
-</div>
-                <div class="form-group">
-                    <label for="bulkApplyTo">تطبيق على:</label>
-                    <select id="bulkApplyTo">
-                        <option value="all">جميع الطلاب</option>
-                        <option value="class">فصل معين</option>
-                        <option value="selected">الطلاب المحددين فقط</option>
-
-                    </select>
-                </div>
-                <div class="form-group" id="bulkClassSelection" style="display:none;">
-                    <label for="bulkClass">اختيار الفصل:</label>
-                    <select id="bulkClass">
-                        <option value="1/1">1/1</option>
-                        <option value="1/2">1/2</option>
-                        <option value="1/3">1/3</option>
-                        <option value="2/عام">2/عام</option>
-                        <option value="2/صحة">2/صحة</option>
-                        <option value="2/هندسة">2/هندسة</option>
-                        <option value="3/عام">3/عام</option>
-                        <option value="3/صحة">3/صحة</option>
-                        <option value="3/هندسة">3/هندسة</option>
-                    </select>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="modal-btn cancel-btn" id="cancelBulkBtn">إلغاء</button>
-                    <button type="submit" class="modal-btn submit-btn" id="applyBulkBtn">تطبيق</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- رسالة تأكيد الحذف -->
-    <div id="deleteConfirmation" class="confirmation-modal">
-        <div class="confirmation-text" id="confirmationMessage"></div>
-        <div class="confirmation-buttons">
-            <button class="modal-btn cancel-btn" id="cancelDeleteBtn">إلغاء</button>
-            <button class="modal-btn delete-btn" id="confirmDeleteBtn">تأكيد الحذف</button>
-        </div>
-    </div>
-
-    <!-- أضف نافذة التاريخ المنبثقة -->
-    <div id="historyModal" class="modal">
-        <div class="modal-content history-modal">
-            <div class="modal-header">
-                <span class="modal-title">سجل التعديلات - <span id="historyStudentName"></span></span>
-                <span class="close-btn" onclick="closeModal('historyModal')">&times;</span>
-            </div>
-            <div class="modal-body">
-                <table class="history-table">
-                    <thead>
-                        <tr>
-                            <th>التاريخ</th>
-                            <th>النقاط السابقة</th>
-                            <th>التغيير</th>
-                            <th>النقاط الجديدة</th>
-                            <th>السبب</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyList"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-   
-    <!-- أضف هذا في نهاية body -->
-<div id="actionModal" class="modal">
-    <div class="modal-content action-modal">
-        <div class="modal-header">
-            <span class="modal-title">الإجراءات</span>
-            <span class="close-btn" onclick="closeActionModal()">&times;</span>
-        </div>
-        <div class="modal-body">
-            <button class="modal-action-btn edit-btn">✏️ تعديل</button>
-            <button class="modal-action-btn history-btn">🕒 التاريخ</button>
-            <button class="modal-action-btn delete-btn">🗑️ حذف</button>
-        </div>
-    </div>
-</div>
-<button id="scrollToTopBtn" class="scroll-to-top" title="العودة إلى الأعلى">
-    <i class="fas fa-arrow-up"></i> <!-- أو استخدم رمز السهم ▲ -->
-</button>
-<div id="exportOptionsModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 class="modal-title">خيارات التصدير</h2>
-            <span class="close-btn" onclick="closeModal('exportOptionsModal')">&times;</span>
-        </div>
-
-        <div class="modal-body">
-            <div class="form-group">
-                <label for="exportOption">نوع التصدير:</label>
-                <select id="exportOption" class="form-control">
-                    <option value="all">تصدير الجميع</option>
-                    <option value="class">تصدير فصل معين</option>
-                    <option value="top10">تصدير أعلى 10 طلاب</option>
-                </select>
-            </div>
-
-            <div id="exportClassSelection" class="form-group" style="display: none;">
-                <label for="exportClassSelect">حدد الفصل:</label>
-                <select id="exportClassSelect" class="form-control">
-                    <!-- سيتم تعبئته تلقائيًا عند فتح النافذة -->
-                </select>
-            </div>
-        </div>
-
-        <div class="modal-footer">
-            <button onclick="closeModal('exportOptionsModal')" class="modal-btn cancel-btn">
-                <i class="fas fa-times"></i> إلغاء
-            </button>
-            <button onclick="handleExport()" class="modal-btn submit-btn">
-                <i class="fas fa-file-export"></i> تأكيد التصدير
-            </button>
-        </div>
-    </div>
-</div>
-
-
-
-
-<!-- نافذة التأكيد المخصصة -->
-<div id="logoutConfirmation" class="confirmation-modal">
-    <div class="confirmation-content">
-        <p>هل أنت متأكد من رغبتك في تسجيل الخروج؟</p>
-        <div class="confirmation-buttons">
-            <button onclick="performLogout()" class="confirm-btn">نعم</button>
-            <button onclick="closeLogoutModal()" class="cancel-btn">لا</button>
-        </div>
-    </div>
-</div>
-
-<!-- أنماط CSS -->
-<style>
-.confirmation-modal {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 1000;
-}
-
-.confirmation-content {
-    background: white;
-    width: 300px;
-    padding: 20px;
-    border-radius: 8px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-}
-
-.confirmation-buttons {
-    margin-top: 20px;
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-}
-
-.confirm-btn, .cancel-btn {
-    padding: 8px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.confirm-btn {
-    background: #4CAF50;
-    color: white;
-}
-
-.cancel-btn {
-    background: #f44336;
-    color: white;
-}
-</style>
-
-<!-- السكريبت -->
-<script>
-function confirmLogout() {
-    document.getElementById('logoutConfirmation').style.display = 'block';
-}
-
-function closeLogoutModal() {
-    document.getElementById('logoutConfirmation').style.display = 'none';
-}
-
-function performLogout() {
-    // يمكنك إضافة أي عمليات تنظيف هنا قبل التوجيه
-    window.location.href = "index.html";
-}
-</script>
-
-
-
-
-<!-- حقوق الملكية -->
-<footer class="luxury-footer">
-<p>جميع الحقوق محفوظة © 2025 صهيب محمد بوزيدان</p>
-  <p>يُمنع إعادة نشر أو توزيع أي جزء من هذا العمل دون إذن كتابي مسبق.</p>
-  <p>للتواصل: <a href="mailto:suhaibwepdev@gmail.com">suhaibwepdev@gmail.com</a></p>
-</footer>
-<script src="/socket.io/socket.io.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="js.js">
-    function confirmLogout() {
-    if (confirm("هل أنت متأكد من رغبتك في تسجيل الخروج؟")) {
-        window.location.href = "index.html";
-    }
-}
-</script>
-<script>
-    const socket = io();
-
-    function sendUpdate(newData) {
-        socket.emit("updateData", newData);
-    }
-
-    // مثال عند الضغط على زر:
-    function updateStudentList() {
-        const updated = { students: ["أحمد", "فاطمة", "سعيد"] };
-        sendUpdate(updated);
-    }
-    // عند حفظ التغييرات (مثل إضافة طالب، تعديل النقاط، إلخ)
-function saveChangesToServer(updatedStudents) {
-  socket.emit("updateFromAdmin", {
-    students: updatedStudents
-  });
-}
-
-// مثال عند تعديل نقاط طالب:
-function updateStudentPoints(studentId, pointsChange) {
-  const student = students.find(s => s.id === studentId);
-  if (student) {
-    student.points += pointsChange;
-    saveChangesToServer(students); // ⬅ إرسال التحديث للخادم
-  }
-}
-</script>
-
-</body>
-</html>

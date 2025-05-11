@@ -1,24 +1,24 @@
+require("dotenv").config();  // تحميل المتغيرات البيئية
 const express = require("express");
 const http = require("http");
 const socketIO = require("socket.io");
 const path = require("path");
-const bodyParser = require("body-parser"); // لمعالجة بيانات POST
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
 // Middleware لتحليل بيانات JSON
-app.use(bodyParser.json());
+app.use(express.json()); // المعالجة المدمجة للبيانات
 app.use(express.static(path.join(__dirname, "/")));
 
-// رمز الدخول الثابت (يمكنك تخزينه في متغير بيئة أو قاعدة بيانات)
+// استخدام متغيرات البيئة لتخزين الرموز
 const ACCESS_CODES = {
-  admin: "Admin123", // رمز الأدمن
-  student: "StuD456" // رمز الطلاب
+  admin: process.env.ADMIN_CODE,
+  student: process.env.STUDENT_CODE
 };
 
-// بيانات الطلاب (مثال)
+// بيانات الطلاب
 let studentsData = {
   students: [],
   lastUpdate: new Date()
@@ -26,19 +26,24 @@ let studentsData = {
 
 // التحقق من رمز الدخول
 app.post("/check-code", (req, res) => {
-  const { code } = req.body;
-  let isValid = false;
-  let redirectPage = "";
+  try {
+    const { code } = req.body;
+    let isValid = false;
+    let redirectPage = "";
 
-  if (code === ACCESS_CODES.admin) {
-    isValid = true;
-    redirectPage = "admin.html";
-  } else if (code === ACCESS_CODES.student) {
-    isValid = true;
-    redirectPage = "student.html";
+    if (code === ACCESS_CODES.admin) {
+      isValid = true;
+      redirectPage = "admin.html";
+    } else if (code === ACCESS_CODES.student) {
+      isValid = true;
+      redirectPage = "student.html";
+    }
+
+    res.json({ success: isValid, page: redirectPage });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "حدث خطأ غير متوقع!" });
   }
-
-  res.json({ success: isValid, page: redirectPage });
 });
 
 // Socket.io للتواصل في الوقت الحقيقي
@@ -60,6 +65,7 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(3000, () => {
-  console.log("🚀 الخادم يعمل على http://localhost:3000");
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`🚀 الخادم يعمل على http://localhost:${PORT}`);
 });

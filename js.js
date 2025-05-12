@@ -468,12 +468,12 @@ function confirmDelete() {
 function handleBulkPoints(e) {
     e.preventDefault();
 
-    const points = parseInt(document.getElementById('bulkPoints').value);
-    const operation = document.getElementById('bulkOperation').value;
+    const points = parseInt(document.getElementById('bulkPointsAmount').value);
+    const operation = document.getElementById('bulkOperationType').value;
     const applyTo = document.getElementById('bulkApplyTo').value;
     const selectedClass = document.getElementById('bulkClass').value;
     const date = document.getElementById('bulkDate').value;
-    const reason = document.getElementById('bulkReason').value || 'نقاط جماعية';
+    const reason = document.getElementById('bulkReason')?.value || 'نقاط جماعية';
 
     if (isNaN(points) || points <= 0) {
         showAlert('الرجاء إدخال عدد نقاط صحيح', 'warning');
@@ -504,7 +504,7 @@ function handleBulkPoints(e) {
         if (!student.history) {
             student.history = [];
         }
-
+        
         const oldPoints = student.points;
         const newPoints = Math.max(0, oldPoints + change);
 
@@ -516,7 +516,7 @@ function handleBulkPoints(e) {
             reason: reason,
             type: operation === 'add' ? 'إضافة نقاط' : 'خصم نقاط'
         });
-
+        
         student.points = newPoints;
     });
 
@@ -598,6 +598,16 @@ function handleExport() {
         dataToExport = dataToExport.filter(function(student) {
             return student.class === exportClass;
         });
+    } else if (exportOption === 'top10') {
+        // ترتيب جميع الطلاب حسب النقاط
+        dataToExport.sort((a, b) => {
+            if (b.points !== a.points) {
+                return b.points - a.points;
+            }
+            return a.id - b.id;
+        });
+        // أخذ العشرة الأوائل فقط
+        dataToExport = dataToExport.slice(0, 10);
     }
     
     // ترتيب الطلاب حسب النقاط (من الأعلى إلى الأقل)
@@ -610,8 +620,8 @@ function handleExport() {
     
     // إضافة الترتيب للبيانات
     const dataWithRank = dataToExport.map((student, index) => ({
-        'الترتيب': index + 1,
-        'الرقم': student.id,
+        'الترتيب على الفصل': index + 1,
+        'الترتيب العام': student.globalRank || index + 1,
         'اسم الطالب': student.name,
         'الفصل': student.class,
         'النقاط': student.points
@@ -621,9 +631,14 @@ function handleExport() {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'الطلاب');
     
-    const fileName = exportOption === 'class' ? 
-        `طلاب_${exportClass}_${new Date().toISOString().split('T')[0]}.xlsx` :
-        `جميع_الطلاب_${new Date().toISOString().split('T')[0]}.xlsx`;
+    let fileName;
+    if (exportOption === 'class') {
+        fileName = `طلاب_${exportClass}_${new Date().toISOString().split('T')[0]}.xlsx`;
+    } else if (exportOption === 'top10') {
+        fileName = `العشرة_الأوائل_${new Date().toISOString().split('T')[0]}.xlsx`;
+    } else {
+        fileName = `جميع_الطلاب_${new Date().toISOString().split('T')[0]}.xlsx`;
+    }
     
     XLSX.writeFile(workbook, fileName);
     closeModal('exportOptionsModal');

@@ -7,20 +7,140 @@ var nextId = 1;
 var selectedStudents = new Set();
 var currentStudentId = null;
 
+// دالة عرض التنبيهات
+function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type}`;
+    alertDiv.textContent = message;
+    
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 3000);
+}
+
+// دالة فتح النوافذ المنبثقة
+function openModal(modalId) {
+    document.getElementById(modalId).style.display = 'block';
+}
+
+// دالة إغلاق النوافذ المنبثقة
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+    // إعادة تعيين النموذج إذا كان موجوداً
+    const form = document.getElementById(modalId).querySelector('form');
+    if (form) {
+        form.reset();
+    }
+}
+
+// دالة فتح نافذة الإجراءات
+function openActionModal() {
+    document.getElementById('actionModal').style.display = 'block';
+}
+
+// دالة إغلاق نافذة الإجراءات
+function closeActionModal() {
+    document.getElementById('actionModal').style.display = 'none';
+    currentStudentId = null;
+}
+
+// دالة فتح نافذة إضافة طالب
+function openAddModal() {
+    document.getElementById('studentId').value = '';
+    document.getElementById('modalTitle').textContent = 'إضافة طالب جديد';
+    document.getElementById('modalDate').value = new Date().toISOString().split('T')[0];
+    openModal('studentModal');
+}
+
 // دالة التهيئة الأولية
 function init() {
-    
     setupEventListeners();
     displayStudents();
     updateDate();
     document.getElementById('bulkClass').value = '1/1';
 }
 
+// دالة إعداد مستمعي الأحداث
+function setupEventListeners() {
+    // أزرار النوافذ المنبثقة
+    document.getElementById('addStudentBtn').addEventListener('click', openAddModal);
+    document.getElementById('importStudentsBtn').addEventListener('click', () => openModal('importModal'));
+    document.getElementById('exportStudentsBtn').addEventListener('click', () => openModal('exportOptionsModal'));
+    document.getElementById('bulkPointsBtn').addEventListener('click', () => {
+        document.getElementById('bulkDate').value = new Date().toISOString().split('T')[0];
+        openModal('bulkPointsModal');
+    });
+    document.getElementById('deleteSelectedBtn').addEventListener('click', deleteSelectedStudents);
 
+    // نماذج
+    document.getElementById('studentForm').addEventListener('submit', handleStudentSubmit);
+    document.getElementById('importForm').addEventListener('submit', handleImport);
+    document.getElementById('bulkPointsForm').addEventListener('submit', handleBulkPoints);
 
-// دالة حفظ البيانات في التخزين المحلي
+    // البحث والتصفية
+    document.getElementById('searchInput').addEventListener('input', displayStudents);
+    document.getElementById('classFilter').addEventListener('change', displayStudents);
+    document.getElementById('selectAllCheckbox').addEventListener('change', toggleSelectAll);
 
-// دالة عرض الطلاب في الجدول
+    // أزرار الحذف
+    document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+    document.getElementById('cancelDeleteBtn').addEventListener('click', () => {
+        selectedStudents.clear();
+        closeModal('deleteConfirmation');
+        updateSelectAllState();
+    });
+
+    // خيارات النقاط الجماعية
+    document.getElementById('bulkApplyTo').addEventListener('change', function() {
+        document.getElementById('bulkClassSelection').style.display = this.value === 'class' ? 'block' : 'none';
+    });
+
+    // أزرار إغلاق النوافذ المنبثقة
+    document.querySelectorAll('.close-btn, .cancel-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const modal = this.closest('.modal');
+            if (modal) {
+                closeModal(modal.id);
+            }
+        });
+    });
+
+    // أزرار نافذة الإجراءات
+    document.querySelector('.modal-action-btn.edit-btn').addEventListener('click', function() {
+        if (currentStudentId) {
+            editStudent(currentStudentId);
+            closeActionModal();
+        }
+    });
+
+    document.querySelector('.modal-action-btn.history-btn').addEventListener('click', function() {
+        if (currentStudentId) {
+            showHistory(currentStudentId);
+            closeActionModal();
+        }
+    });
+
+    document.querySelector('.modal-action-btn.delete-btn').addEventListener('click', function() {
+        if (currentStudentId) {
+            deleteSingleStudent(currentStudentId);
+            closeActionModal();
+        }
+    });
+
+    // إغلاق النوافذ المنبثقة عند النقر خارجها
+    window.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal')) {
+            closeModal(e.target.id);
+        }
+    });
+
+    // زر العودة للأعلى
+    window.addEventListener('scroll', toggleScrollToTopButton);
+    document.getElementById('scrollToTopBtn').addEventListener('click', scrollToTop);
+}
+
 // دالة عرض الطلاب في الجدول
 function displayStudents() {
     var searchTerm = document.getElementById('searchInput').value.toLowerCase();
@@ -88,7 +208,6 @@ function displayStudents() {
 }
 
 // دالة إنشاء صف للطالب
-// في دالة createStudentRow:
 function createStudentRow(student, rank) {
     var row = document.createElement('tr');
     row.setAttribute('data-id', student.id);
@@ -125,7 +244,7 @@ function createStudentRow(student, rank) {
     return row;
 }
 
-// إضافة هذه الدوال الجديدة:
+// دالة إعداد عناصر التحكم في النقاط
 function setupPointsControls() {
     // إزالة جميع الأحداث السابقة أولاً
     var addButtons = document.querySelectorAll('.add-points-btn');
@@ -159,6 +278,7 @@ function setupPointsControls() {
     });
 }
 
+// دالة تحديث نقاط الطالب
 function updateStudentPoints(studentId, change, reason) {
     var student = students.find(function(s) {
         return s.id === studentId;
@@ -173,12 +293,12 @@ function updateStudentPoints(studentId, change, reason) {
         student.history = [];
     }
     
-    student.history.unshift({
+    student.history.push({
         date: new Date().toISOString().split('T')[0],
         oldPoints: oldPoints,
         change: change,
         newPoints: newPoints,
-        reason: reason || 'تعديل النقاط'
+        reason: reason
     });
     
     student.points = newPoints;
@@ -186,104 +306,8 @@ function updateStudentPoints(studentId, change, reason) {
     // إرسال التحديث للخادم
     saveChangesToServer(students);
     
-    // تحديث العرض مباشرة
-    document.getElementById('points-display-' + studentId).textContent = newPoints;
-    
+    displayStudents();
     showAlert(`تم ${change > 0 ? 'إضافة' : 'خصم'} ${Math.abs(change)} نقطة`, 'success');
-}
-
-
-    
-    // في نهاية الدالة بعد إضافة الصفوف
-    setupPointsControls();
-
-// دالة إعداد مستمعي الأحداث
-function setupEventListeners() {
-    document.getElementById('addStudentBtn').addEventListener('click', openAddModal);
-    document.getElementById('importStudentsBtn').addEventListener('click', function() {
-        openModal('importModal');
-    });
-document.getElementById('exportStudentsBtn').addEventListener('click', function() {
-    openModal('exportOptionsModal');
-});
-    document.getElementById('bulkPointsBtn').addEventListener('click', function() {
-        document.getElementById('bulkDate').value = new Date().toISOString().split('T')[0];
-        openModal('bulkPointsModal');
-    });
-    document.getElementById('deleteSelectedBtn').addEventListener('click', deleteSelectedStudents);
-    document.getElementById('studentForm').addEventListener('submit', handleStudentSubmit);
-    document.getElementById('importForm').addEventListener('submit', handleImport);
-    document.getElementById('bulkPointsForm').addEventListener('submit', handleBulkPoints);
-    document.getElementById('searchInput').addEventListener('input', displayStudents);
-    document.getElementById('classFilter').addEventListener('change', displayStudents);
-    document.getElementById('selectAllCheckbox').addEventListener('change', toggleSelectAll);
-    document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
-    document.getElementById('cancelDeleteBtn').addEventListener('click', function() {
-        selectedStudents.clear();
-        closeModal('deleteConfirmation');
-        updateSelectAllState();
-    });
-    document.getElementById('bulkApplyTo').addEventListener('change', function() {
-        document.getElementById('bulkClassSelection').style.display = this.value === 'class' ? 'block' : 'none';
-    });
-
-    // أحداث النوافذ المنبثقة
-    document.querySelectorAll('.close-btn, .cancel-btn').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            const modal = this.closest('.modal');
-            if (modal) {
-                closeModal(modal.id);
-            }
-        });
-    });
-
-    // أحداث نافذة الإجراءات
-    document.querySelector('.modal-action-btn.edit-btn').addEventListener('click', function() {
-        if (currentStudentId) {
-            editStudent(currentStudentId);
-            closeActionModal();
-        }
-    });
-
-    document.querySelector('.modal-action-btn.history-btn').addEventListener('click', function() {
-        if (currentStudentId) {
-            showHistory(currentStudentId);
-            closeActionModal();
-        }
-    });
-
-    document.querySelector('.modal-action-btn.delete-btn').addEventListener('click', function() {
-        if (currentStudentId) {
-            deleteSingleStudent(currentStudentId);
-            closeActionModal();
-        }
-    });
-
-    window.addEventListener('click', function(e) {
-        if (e.target.classList.contains('modal')) {
-            closeModal(e.target.id);
-        }
-    });
-    window.addEventListener('scroll', toggleScrollToTopButton);
-document.getElementById('scrollToTopBtn').addEventListener('click', scrollToTop);
-// (اختياري) إخفاء الزر عند التحميل إذا كانت الصفحة في الأعلى
-window.addEventListener('DOMContentLoaded', () => {
-    if (window.scrollY === 0) {
-        document.getElementById('scrollToTopBtn').classList.remove('show');
-    }
-});
-
-}
-
-// دالة فتح نافذة الإجراءات
-function openActionModal() {
-    document.getElementById('actionModal').style.display = 'block';
-}
-
-// دالة إغلاق نافذة الإجراءات
-function closeActionModal() {
-    document.getElementById('actionModal').style.display = 'none';
-    currentStudentId = null;
 }
 
 // دالة إرفاق أحداث الصفوف
@@ -344,7 +368,7 @@ function updateSelectAllState() {
     }
 }
 
-// دالة تحديث دالة handleStudentSubmit
+// دالة معالجة إضافة/تعديل طالب
 function handleStudentSubmit(e) {
     e.preventDefault();
 
@@ -360,6 +384,7 @@ function handleStudentSubmit(e) {
     }
     
     if (id) {
+        // تعديل طالب موجود
         const index = students.findIndex(function(s) {
             return s.id === parseInt(id);
         });
@@ -389,34 +414,45 @@ function handleStudentSubmit(e) {
             };
         }
     } else {
-        students.push({ 
-            id: nextId++, 
-            name: name, 
-            class: studentClass, 
+        // إضافة طالب جديد
+        const newStudent = {
+            id: nextId++,
+            name: name,
+            class: studentClass,
             points: points,
             history: [{
-                date: new Date().toISOString().split('T')[0],
+                date: selectedDate || new Date().toISOString().split('T')[0],
                 oldPoints: 0,
                 change: points,
                 newPoints: points,
                 reason: 'إضافة طالب جديد',
-                type: 'إضافة'
+                type: 'إضافة نقاط'
             }]
-        });
+        };
+        students.push(newStudent);
     }
-    
+
     // إرسال التحديث للخادم
     saveChangesToServer(students);
-    
+
     closeModal('studentModal');
     displayStudents();
-    showAlert('تم حفظ التغييرات بنجاح', 'success');
+    showAlert(id ? 'تم تعديل بيانات الطالب بنجاح' : 'تم إضافة الطالب بنجاح', 'success');
+}
+
+// دالة حذف الطلاب المحددين
+function deleteSelectedStudents() {
+    if (selectedStudents.size === 0) {
+        showAlert('الرجاء تحديد طالب واحد على الأقل', 'warning');
+        return;
+    }
+    openModal('deleteConfirmation');
 }
 
 // دالة تأكيد الحذف
 function confirmDelete() {
-    students = students.filter(function(s) {
-        return !selectedStudents.has(s.id);
+    students = students.filter(function(student) {
+        return !selectedStudents.has(student.id);
     });
     
     // إرسال التحديث للخادم
@@ -425,66 +461,64 @@ function confirmDelete() {
     selectedStudents.clear();
     closeModal('deleteConfirmation');
     displayStudents();
-    showAlert('تم الحذف بنجاح', 'success');
-    updateSelectAllState();
+    showAlert('تم حذف الطلاب المحددين بنجاح', 'success');
 }
 
 // دالة معالجة النقاط الجماعية
 function handleBulkPoints(e) {
     e.preventDefault();
-    const selectedDate = document.getElementById('bulkDate').value;
-    const points = parseInt(document.getElementById('bulkPointsAmount').value);
-    const operation = document.getElementById('bulkOperationType').value;
+
+    const points = parseInt(document.getElementById('bulkPoints').value);
+    const operation = document.getElementById('bulkOperation').value;
     const applyTo = document.getElementById('bulkApplyTo').value;
     const selectedClass = document.getElementById('bulkClass').value;
+    const date = document.getElementById('bulkDate').value;
+    const reason = document.getElementById('bulkReason').value || 'نقاط جماعية';
+
+    if (isNaN(points) || points <= 0) {
+        showAlert('الرجاء إدخال عدد نقاط صحيح', 'warning');
+        return;
+    }
 
     let targets = [];
     if (applyTo === 'selected') {
-        targets = students.filter(function(s) {
-            return selectedStudents.has(s.id);
+        targets = students.filter(function(student) {
+            return selectedStudents.has(student.id);
         });
     } else if (applyTo === 'class') {
-        targets = students.filter(function(s) {
-            return s.class === selectedClass;
+        targets = students.filter(function(student) {
+            return student.class === selectedClass;
         });
-    } else if (applyTo === 'all') {
+    } else {
         targets = [...students];
     }
 
     if (targets.length === 0) {
-        showAlert('لا يوجد طلاب مطابقين للمعايير المحددة', 'warning');
+        showAlert('لا يوجد طلاب مستهدفون', 'warning');
         return;
     }
 
-    const currentDate = selectedDate || new Date().toISOString().split('T')[0];
+    const change = operation === 'add' ? points : -points;
 
-    for (let i = 0; i < targets.length; i++) {
-        const student = targets[i];
-        const oldPoints = student.points;
-        let newPoints, change;
-        
-        if (operation === 'add') {
-            newPoints = oldPoints + points;
-            change = points;
-        } else {
-            newPoints = Math.max(0, oldPoints - points);
-            change = -points;
-        }
-        
+    targets.forEach(function(student) {
         if (!student.history) {
             student.history = [];
         }
-        
-        student.history.unshift({
-            date: currentDate,
+
+        const oldPoints = student.points;
+        const newPoints = Math.max(0, oldPoints + change);
+
+        student.history.push({
+            date: date,
             oldPoints: oldPoints,
             change: change,
             newPoints: newPoints,
-            reason: 'تعديل جماعي للنقاط'
+            reason: reason,
+            type: operation === 'add' ? 'إضافة نقاط' : 'خصم نقاط'
         });
-        
+
         student.points = newPoints;
-    }
+    });
 
     // إرسال التحديث للخادم
     saveChangesToServer(students);
@@ -494,18 +528,6 @@ function handleBulkPoints(e) {
     displayStudents();
     showAlert(`تم ${operation === 'add' ? 'إضافة' : 'خصم'} ${points} نقطة لـ ${targets.length} طالب`, 'success');
     updateSelectAllState();
-}
-
-// دالة حذف الطلاب المحددين
-function deleteSelectedStudents() {
-    if (selectedStudents.size === 0) {
-        showAlert('الرجاء تحديد طلاب للحذف', 'warning');
-        return;
-    }
-    
-    document.getElementById('confirmationMessage').textContent = 
-        `هل أنت متأكد من حذف ${selectedStudents.size} طالب؟`;
-    openModal('deleteConfirmation');
 }
 
 // دالة حذف طالب واحد
@@ -558,43 +580,42 @@ function handleImport(e) {
 }
 
 // دالة تصدير الطلاب إلى إكسل
-function exportStudents() {
-    const data = students.map(function(s) {
+function handleExport() {
+    const exportOption = document.getElementById('exportOption').value;
+    const exportClass = document.getElementById('exportClassSelect').value;
+    
+    let dataToExport = students;
+    if (exportOption === 'class') {
+        dataToExport = students.filter(function(student) {
+            return student.class === exportClass;
+        });
+    }
+    
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport.map(function(student) {
         return {
-            'اسم الطالب': s.name,
-            'الفصل': s.class,
-            'النقاط': s.points
+            'الرقم': student.id,
+            'اسم الطالب': student.name,
+            'الفصل': student.class,
+            'النقاط': student.points
         };
-    });
-
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "الطلاب");
-    XLSX.writeFile(wb, "students.xlsx");
-    showAlert('تم التصدير بنجاح', 'success');
+    }));
+    
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'الطلاب');
+    
+    const fileName = exportOption === 'class' ? 
+        `طلاب_${exportClass}_${new Date().toISOString().split('T')[0]}.xlsx` :
+        `جميع_الطلاب_${new Date().toISOString().split('T')[0]}.xlsx`;
+    
+    XLSX.writeFile(workbook, fileName);
+    closeModal('exportOptionsModal');
+    showAlert('تم تصدير البيانات بنجاح', 'success');
 }
 
 // دالة تحديث التاريخ
 function updateDate() {
-    const options = {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    };
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     document.getElementById('currentDate').textContent = new Date().toLocaleDateString('ar-EG', options);
-}
-
-// دالة عرض التنبيهات
-function showAlert(message, type) {
-    const alert = document.createElement('div');
-    alert.className = `alert alert-${type}`;
-    alert.textContent = message;
-    document.body.appendChild(alert);
-    
-    setTimeout(function() {
-        alert.remove();
-    }, 3000);
 }
 
 // دالة تبديل تحديد الكل
@@ -612,355 +633,52 @@ function toggleSelectAll(event) {
     updateSelectAllState();
 }
 
-// دالة تحسين تجربة السحب والإفلات
-function setupFileUpload() {
-    const uploadArea = document.querySelector('.file-upload-area');
-    const fileInput = document.getElementById('excelFile');
-    const filePreview = document.getElementById('filePreview');
-
-    // عند اختيار ملف
-    fileInput.addEventListener('change', function(e) {
-        if (this.files.length) {
-            showFilePreview(this.files[0]);
-        }
-    });
-
-    // أحداث السحب والإفلات
-    uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.classList.add('drag-over');
-    });
-
-    uploadArea.addEventListener('dragleave', () => {
-        uploadArea.classList.remove('drag-over');
-    });
-
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('drag-over');
-        
-        if (e.dataTransfer.files.length) {
-            fileInput.files = e.dataTransfer.files;
-            showFilePreview(e.dataTransfer.files[0]);
-        }
-    });
-}
-
-function showFilePreview(file) {
-    const preview = document.getElementById('filePreview');
-    preview.innerHTML = `
-        <p><strong>الملف المحدد:</strong> ${file.name}</p>
-        <p><strong>الحجم:</strong> ${(file.size / 1024).toFixed(2)} KB</p>
-    `;
-    preview.style.display = 'block';
-}
-
-// استدعاء الدالة عند تحميل الصفحة
-document.addEventListener('DOMContentLoaded', function() {
-    const fileInput = document.getElementById('excelFile');
-    const fileNameSpan = document.getElementById('fileName');
-    const clearFileBtn = document.getElementById('clearFile');
-    const fileInfoDiv = document.getElementById('fileInfo');
-
-    // عند اختيار ملف
-    fileInput.addEventListener('change', function() {
-        if (this.files.length > 0) {
-            fileNameSpan.textContent = this.files[0].name;
-            fileInfoDiv.style.display = 'flex';
-        } else {
-            fileNameSpan.textContent = 'لم يتم اختيار ملف';
-            fileInfoDiv.style.display = 'none';
-        }
-    });
-
-    // زر إزالة الملف
-    clearFileBtn.addEventListener('click', function() {
-        fileInput.value = '';
-        fileNameSpan.textContent = 'لم يتم اختيار ملف';
-        fileInfoDiv.style.display = 'none';
-    });
-
-    // أحداث السحب والإفلات
-    const uploadArea = document.querySelector('.file-upload-area');
-    
-    uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.classList.add('drag-over');
-    });
-
-    uploadArea.addEventListener('dragleave', () => {
-        uploadArea.classList.remove('drag-over');
-    });
-
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('drag-over');
-        
-        if (e.dataTransfer.files.length) {
-            fileInput.files = e.dataTransfer.files;
-            fileNameSpan.textContent = e.dataTransfer.files[0].name;
-            fileInfoDiv.style.display = 'flex';
-        }
-    });
-   
-});
-
-document.querySelectorAll('select').forEach(select => {
-    // إضافة تأثير عند تغيير القيمة
-    select.addEventListener('change', function() {
-        if (this.value) {
-            this.style.borderColor = '#4CAF50';
-            setTimeout(() => {
-                this.style.borderColor = '#ddd';
-            }, 1000);
-        }
-    });
-});
-
-// دالة عرض سجل التعديلات
+// دالة عرض سجل الطالب
 function showHistory(studentId) {
     const student = students.find(function(s) {
         return s.id === studentId;
     });
     
-    if (!student) return;
-
-    document.getElementById('historyStudentName').textContent = student.name;
-    const tbody = document.getElementById('historyList');
-    tbody.innerHTML = '';
-
-    if (!student.history || student.history.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="5" style="text-align:center;">لا يوجد سجل تعديلات لهذا الطالب</td>
-            </tr>
-        `;
+    if (!student || !student.history || student.history.length === 0) {
+        showAlert('لا يوجد سجل للطالب', 'info');
         return;
     }
-
-    for (let i = 0; i < student.history.length; i++) {
-        const record = student.history[i];
-        const changeClass = record.change >= 0 ? 'positive-change' : 'negative-change';
-        const changeSign = record.change >= 0 ? '+' : '';
-        const formattedDate = record.date ? new Date(record.date).toLocaleDateString('ar-EG') : '--';
-        
-        tbody.innerHTML += `
-            <tr>
-                <td>${formattedDate}</td>
-                <td>${record.oldPoints || '--'}</td>
-                <td class="${changeClass}">${changeSign}${record.change || '--'}</td>
-                <td>${record.newPoints || '--'}</td>
-                <td>${record.reason || '--'}</td>
-            </tr>
+    
+    const historyList = document.getElementById('historyList');
+    historyList.innerHTML = '';
+    
+    student.history.forEach(function(record) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${record.date}</td>
+            <td>${record.reason}</td>
+            <td>${record.oldPoints}</td>
+            <td>${record.change > 0 ? '+' : ''}${record.change}</td>
+            <td>${record.newPoints}</td>
         `;
-    }
-
-    openModal('historyModal');
-}
-
-// دالة إظهار/إخفاء الزر حسب موضع التمرير
-function toggleScrollToTopButton() {
-    const scrollToTopBtn = document.getElementById('scrollToTopBtn');
-    if (window.scrollY > 300) { // يظهر الزر بعد التمرير 300px
-        scrollToTopBtn.classList.add('show');
-    } else {
-        scrollToTopBtn.classList.remove('show');
-    }
-}
-
-// دالة العودة إلى الأعلى
-function scrollToTop() {
-    window.scrollTo({
-        top: 0,
-        behavior: 'smooth' // تمرير سلس
-    });
-}
-
-function handleExport() {
-    const option = document.getElementById('exportOption').value;
-    let exportData = [];
-
-    if (option === 'all') {
-        exportData = students;
-    } else if (option === 'class') {
-        const selectedClass = document.getElementById('exportClass').value.trim();
-        if (!selectedClass) {
-            showAlert('الرجاء كتابة اسم الفصل', 'warning');
-            return;
-        }
-        exportData = students.filter(s => s.class === selectedClass);
-    } else if (option === 'top10') {
-        exportData = students
-            .slice()
-            .sort((a, b) => b.points - a.points)
-            .slice(0, 10);
-    }
-
-    if (exportData.length === 0) {
-        showAlert('لا يوجد طلاب للتصدير حسب الخيار المختار', 'warning');
-        return;
-    }
-
-    const data = exportData.map(function(s) {
-        return {
-            'اسم الطالب': s.name,
-            'الفصل': s.class,
-            'النقاط': s.points
-        };
-    });
-
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "الطلاب");
-    XLSX.writeFile(wb, "students_export.xlsx");
-
-    showAlert('تم التصدير بنجاح', 'success');
-    closeModal('exportOptionsModal');
-}
-
-// دالة عرض سجل التعديلات
-function showHistory(studentId) {
-    const student = students.find(function(s) {
-        return s.id === studentId;
+        historyList.appendChild(row);
     });
     
-    if (!student) return;
-
     document.getElementById('historyStudentName').textContent = student.name;
-    const tbody = document.getElementById('historyList');
-    tbody.innerHTML = '';
-
-    if (!student.history || student.history.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="5" style="text-align:center;">لا يوجد سجل تعديلات لهذا الطالب</td>
-            </tr>
-        `;
-        return;
-    }
-
-    for (let i = 0; i < student.history.length; i++) {
-        const record = student.history[i];
-        const changeClass = record.change >= 0 ? 'positive-change' : 'negative-change';
-        const changeSign = record.change >= 0 ? '+' : '';
-        const formattedDate = record.date ? new Date(record.date).toLocaleDateString('ar-EG') : '--';
-        
-        tbody.innerHTML += `
-            <tr>
-                <td>${formattedDate}</td>
-                <td>${record.oldPoints || '--'}</td>
-                <td class="${changeClass}">${changeSign}${record.change || '--'}</td>
-                <td>${record.newPoints || '--'}</td>
-                <td>${record.reason || '--'}</td>
-            </tr>
-        `;
-    }
-
     openModal('historyModal');
 }
 
-// دالة إظهار/إخفاء الزر حسب موضع التمرير
+// دالة تبديل ظهور زر العودة للأعلى
 function toggleScrollToTopButton() {
-    const scrollToTopBtn = document.getElementById('scrollToTopBtn');
-    if (window.scrollY > 300) { // يظهر الزر بعد التمرير 300px
-        scrollToTopBtn.classList.add('show');
+    const button = document.getElementById('scrollToTopBtn');
+    if (window.scrollY > 300) {
+        button.classList.add('show');
     } else {
-        scrollToTopBtn.classList.remove('show');
+        button.classList.remove('show');
     }
 }
 
-// دالة العودة إلى الأعلى
+// دالة العودة للأعلى
 function scrollToTop() {
     window.scrollTo({
         top: 0,
-        behavior: 'smooth' // تمرير سلس
+        behavior: 'smooth'
     });
-}
-
-function handleExport() {
-    const option = document.getElementById('exportOption').value;
-    let exportData = [];
-
-    if (option === 'all') {
-        exportData = students;
-    } else if (option === 'class') {
-        const selectedClass = document.getElementById('exportClassSelect').value;
-        if (!selectedClass) {
-            showAlert('الرجاء اختيار فصل', 'warning');
-            return;
-        }
-        exportData = students.filter(s => s.class === selectedClass);
-    } else if (option === 'top10') {
-        exportData = students
-            .slice()
-            .sort((a, b) => b.points - a.points)
-            .slice(0, 10);
-    }
-
-    if (exportData.length === 0) {
-        showAlert('لا يوجد طلاب للتصدير حسب الخيار المختار', 'warning');
-        return;
-    }
-
-    const data = exportData.map(function(s) {
-        return {
-            'اسم الطالب': s.name,
-            'الفصل': s.class,
-            'النقاط': s.points
-        };
-    });
-
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "الطلاب");
-    XLSX.writeFile(wb, "students_export.xlsx");
-
-    showAlert('تم التصدير بنجاح', 'success');
-    closeModal('exportOptionsModal');
-}
-
-// فتح النافذة
-function openExportModal() {
-    document.getElementById('exportOptionsModal').style.display = 'block';
-}
-
-// إغلاق النافذة
-function closeModal(modalId) {
-    document.getElementById(modalId).style.display = 'none';
-}
-
-// التحكم في ظهور حقل الفصل
-document.getElementById('exportOption').addEventListener('change', function() {
-    const selected = this.value;
-    const classSection = document.getElementById('exportClassSelection');
-    if (selected === 'class') {
-        fillExportClassSelect();
-        classSection.style.display = 'block';
-    } else {
-        classSection.style.display = 'none';
-    }
-});
-function fillExportClassSelect() {
-    const classSelect = document.getElementById('exportClassSelect');
-    classSelect.innerHTML = '';
-
-    const uniqueClasses = [...new Set(students.map(s => s.class))];
-
-    uniqueClasses.forEach(function(className) {
-        const option = document.createElement('option');
-        option.value = className;
-        option.textContent = className;
-        classSelect.appendChild(option);
-    });
-}
-
-// دالة عرض نافذة إضافة طالب
-function openAddModal() {
-    document.getElementById('studentId').value = '';
-    document.getElementById('modalTitle').textContent = 'إضافة طالب جديد';
-    document.getElementById('studentForm').reset();
-    document.getElementById('modalDate').value = new Date().toISOString().split('T')[0];
-    openModal('studentModal');
 }
 
 // دالة تعديل طالب
@@ -979,3 +697,10 @@ function editStudent(id) {
     document.getElementById('modalDate').value = new Date().toISOString().split('T')[0];
     openModal('studentModal');
 }
+
+// دالة إرسال التحديثات للخادم
+function saveChangesToServer(updatedStudents) {
+    if (typeof socket !== 'undefined') {
+        socket.emit('updateFromAdmin', { students: updatedStudents });
+    }
+} 

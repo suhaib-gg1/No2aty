@@ -1,0 +1,133 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الدخول بالرمز - مدرسة ريادة التميز</title>
+    <link rel="stylesheet" href="css.css">
+    <style>
+        .code-container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+
+        .code-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background 0.3s;
+        }
+
+        .submit-btn:hover {
+            background: #45a049;
+        }
+
+        .error-msg {
+            color: #f44336;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body class="student-view">
+    <nav class="navbar">
+        <div class="nav-container">
+            <img src="snapedit_1730146554309.png" class="school-logo" alt="شعار المدرسة">
+            <div class="date-display" id="currentDate"></div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>الدخول باستخدام الرمز السري</h1>
+        
+        <div class="code-container">
+            <input type="text" 
+                   class="code-input" 
+                   placeholder="أدخل الرمز (مثال: StuD12)"
+                   id="accessCode"
+                   maxlength="50"
+                   oninput="validateInput(this)">
+            
+            <button class="submit-btn" onclick="checkCode()">الدخول</button>
+            
+            <div class="error-msg" id="errorMsg">
+                الرمز غير صحيح، يرجى المحاولة مرة أخرى
+            </div>
+        </div>
+    </div>
+
+    <footer class="luxury-footer">
+        <p>جميع الحقوق محفوظة © 2025 صهيب محمد بوزيدان</p>
+        <p>يُمنع إعادة نشر أو توزيع أي جزء من هذا العمل دون إذن كتابي مسبق.</p>
+        <p>للتواصل: <a href="mailto:suhaibwebdev@gmail.com">suhaibwepdev@gmail.com</a></p>
+    </footer>
+
+    <script>
+        async function checkCode() {
+            const enteredCode = document.getElementById('accessCode').value;
+            const errorMsg = document.getElementById('errorMsg');
+
+            const response = await fetch("/check-code", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ code: enteredCode })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                window.location.href = result.page;
+            } else {
+                errorMsg.textContent = "الرمز غير صحيح، يرجى المحاولة مرة أخرى";
+                errorMsg.style.display = "block";
+            }
+        }
+
+        function validateInput(input) {
+            input.value = input.value.replace(/[^a-zA-Z0-9]/g, '');
+            document.getElementById('errorMsg').style.display = 'none';
+        }
+
+        document.getElementById('accessCode').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkCode();
+        });
+
+        function updateDate() {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('currentDate').textContent = new Date().toLocaleDateString('ar-EG', options);
+        }
+
+        fetch('/data')
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById('dataDisplay').innerText = data.data;
+    });
+
+
+        updateDate();
+    </script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 // بدء التطبيق عند تحميل الصفحة
-document.addEventListener('DOMContentLoaded', init);
+// حذف السطر التالي لأنه مكرر
+// document.addEventListener('DOMContentLoaded', init);
 
 // المتغيرات العامة
 var students = [];
@@ -56,10 +57,13 @@ function openAddModal() {
 
 // دالة التهيئة الأولية
 function init() {
+    console.log('بدء تهيئة الصفحة...');
     setupEventListeners();
     displayStudents();
+    console.log('استدعاء updateDate من init...');
     updateDate();
     document.getElementById('bulkClass').value = '1/1';
+    console.log('اكتملت تهيئة الصفحة');
 }
 
 // دالة إعداد مستمعي الأحداث
@@ -593,41 +597,77 @@ function handleExport() {
     
     let dataToExport = [...students];
     
-    // تصفية حسب الفصل إذا تم اختيار فصل معين
-    if (exportOption === 'class') {
-        dataToExport = dataToExport.filter(function(student) {
-            return student.class === exportClass;
-        });
-    } else if (exportOption === 'top10') {
-        // ترتيب جميع الطلاب حسب النقاط
-        dataToExport.sort((a, b) => {
-            if (b.points !== a.points) {
-                return b.points - a.points;
-            }
-            return a.id - b.id;
-        });
-        // أخذ العشرة الأوائل فقط
-        dataToExport = dataToExport.slice(0, 10);
-    }
-    
-    // ترتيب الطلاب حسب النقاط (من الأعلى إلى الأقل)
+    // ترتيب جميع الطلاب حسب النقاط أولاً
     dataToExport.sort((a, b) => {
         if (b.points !== a.points) {
             return b.points - a.points;
         }
         return a.id - b.id;
     });
+
+    // تصفية حسب نوع التصدير
+    if (exportOption === 'class') {
+        // تصدير فصل معين
+        dataToExport = dataToExport.filter(function(student) {
+            return student.class === exportClass;
+        });
+        // إعادة ترتيب الطلاب في الفصل
+        dataToExport.forEach((student, index) => {
+            student.classRank = index + 1;
+            student.globalRank = students.findIndex(s => s.id === student.id) + 1;
+        });
+    } else if (exportOption === 'top10') {
+        // تصدير العشرة الأوائل فقط
+        dataToExport = dataToExport.slice(0, 10);
+        // تعيين الترتيب العام فقط للعشرة الأوائل
+        dataToExport.forEach((student, index) => {
+            student.globalRank = index + 1;
+            student.classRank = null; // لا نحتاج للترتيب على الفصل في العشرة الأوائل
+        });
+    } else {
+        // تصدير جميع الطلاب
+        dataToExport.forEach((student, index) => {
+            student.globalRank = index + 1;
+            // حساب الترتيب على الفصل
+            const classStudents = dataToExport.filter(s => s.class === student.class);
+            student.classRank = classStudents.findIndex(s => s.id === student.id) + 1;
+        });
+    }
     
     // إضافة الترتيب للبيانات
-    const dataWithRank = dataToExport.map((student, index) => ({
-        'الترتيب على الفصل': index + 1,
-        'الترتيب العام': student.globalRank || index + 1,
-        'اسم الطالب': student.name,
-        'الفصل': student.class,
-        'النقاط': student.points
-    }));
+    const dataWithRank = dataToExport.map((student) => {
+        const row = {
+            'الترتيب العام': student.globalRank,
+            'اسم الطالب': student.name,
+            'الفصل': student.class,
+            'النقاط': student.points
+        };
+        
+        // إضافة الترتيب على الفصل فقط إذا لم يكن تصدير العشرة الأوائل
+        if (exportOption !== 'top10') {
+            row['الترتيب على الفصل'] = student.classRank;
+        }
+        
+        return row;
+    });
     
     const worksheet = XLSX.utils.json_to_sheet(dataWithRank);
+    
+    // تنسيق عرض الأعمدة
+    const wscols = exportOption === 'top10' ? [
+        {wch: 10}, // الترتيب العام
+        {wch: 25}, // اسم الطالب
+        {wch: 10}, // الفصل
+        {wch: 10}  // النقاط
+    ] : [
+        {wch: 10}, // الترتيب العام
+        {wch: 12}, // الترتيب على الفصل
+        {wch: 25}, // اسم الطالب
+        {wch: 10}, // الفصل
+        {wch: 10}  // النقاط
+    ];
+    worksheet['!cols'] = wscols;
+    
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'الطلاب');
     
@@ -647,8 +687,44 @@ function handleExport() {
 
 // دالة تحديث التاريخ
 function updateDate() {
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    document.getElementById('currentDate').textContent = new Date().toLocaleDateString('ar-EG', options);
+    console.log('بدء تحديث التاريخ...');
+    const dateElement = document.getElementById('currentDate');
+    
+    if (!dateElement) {
+        console.error('عنصر التاريخ غير موجود في الصفحة (currentDate)');
+        return;
+    }
+    
+    try {
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const date = new Date().toLocaleDateString('ar-EG', options);
+        console.log('التاريخ المنسق:', date);
+        
+        // تحديث النص مباشرة
+        dateElement.textContent = date;
+        
+        // التأكد من أن النص تم تحديثه
+        if (dateElement.textContent === date) {
+            console.log('تم تحديث عنصر التاريخ بنجاح');
+            // إضافة تأثير بصرية للتأكيد
+            dateElement.style.opacity = '0';
+            setTimeout(() => {
+                dateElement.style.transition = 'opacity 0.3s ease';
+                dateElement.style.opacity = '1';
+            }, 50);
+        } else {
+            console.error('فشل تحديث النص في عنصر التاريخ');
+            // محاولة تحديث النص مرة أخرى
+            setTimeout(() => {
+                dateElement.textContent = date;
+                console.log('محاولة تحديث النص مرة أخرى');
+            }, 100);
+        }
+    } catch (error) {
+        console.error('حدث خطأ أثناء تحديث التاريخ:', error);
+        // محاولة تحديث التاريخ مرة أخرى بعد ثانية
+        setTimeout(updateDate, 1000);
+    }
 }
 
 // دالة تبديل تحديد الكل
@@ -736,4 +812,11 @@ function saveChangesToServer(updatedStudents) {
     if (typeof socket !== 'undefined') {
         socket.emit('updateFromAdmin', { students: updatedStudents });
     }
-} 
+}
+
+// إضافة مستمع حدث DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('تم تحميل الصفحة بالكامل');
+    console.log('استدعاء init...');
+    init();
+}); 

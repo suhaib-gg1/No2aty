@@ -8,15 +8,12 @@
    <link rel="stylesheet" href="css.css">
 </head>
 <body>
-    <!-- شريط التنقل -->
     <nav class="navbar">
         <div class="nav-container">
-            <div class="logo-container">
-                <img src="snapedit_1730146554309.png" alt="شعار المدرسة" class="school-logo">
-            </div>
+            <img src="snapedit_1730146554309.png" class="school-logo" alt="شعار المدرسة">
             <div class="date-display" id="currentDate"></div>
-            <div class="nav-links">
-                <a href="#" class="nav-link" title="تسجيل الخروج" onclick="confirmLogout()">تسجيل خروج</a>        </div>
+            <a href="#" class="nav-link" title="تسجيل الخروج" onclick="confirmLogout()">تسجيل خروج</a>
+        </div>
     </nav>
 
     <!-- المحتوى الرئيسي -->
@@ -75,163 +72,175 @@
         </table>
         
     <!-- نوافذ منبثقة -->
-    <div id="studentModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="modal-title" id="modalTitle">إضافة طالب جديد</span>
-                <span class="close-btn" id="closeStudentModal">&times;</span>
+    <div id="studentModal" class="modal-overlay">
+        <div class="confirmation-modal">
+            <div class="confirmation-content">
+                <div class="modal-header">
+                    <span class="modal-title" id="modalTitle">إضافة طالب جديد</span>
+                    <button class="close-btn" onclick="closeModal('studentModal')">&times;</button>
+                </div>
+                <form id="studentForm">
+                    <input type="hidden" id="studentId">
+                    <div class="form-group">
+                        <label for="modalName">اسم الطالب:</label>
+                        <input type="text" id="modalName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="modalClass">الفصل:</label>
+                        <select id="modalClass" required>
+                            <option value="1/1">1/1</option>
+                            <option value="1/2">1/2</option>
+                            <option value="1/3">1/3</option>
+                            <option value="2/عام">2/عام</option>
+                            <option value="2/صحة">2/صحة</option>
+                            <option value="2/هندسة">2/هندسة</option>
+                            <option value="3/عام">3/عام</option>
+                            <option value="3/صحة">3/صحة</option>
+                            <option value="3/هندسة">3/هندسة</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="modalPoints">النقاط:</label>
+                        <input type="number" id="modalPoints" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="modalDate">تاريخ التعديل:</label>
+                        <input type="date" id="modalDate" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="modal-btn cancel-btn" onclick="closeModal('studentModal')">إلغاء</button>
+                        <button type="submit" class="modal-btn submit-btn" id="saveStudentBtn">حفظ</button>
+                    </div>
+                </form>
             </div>
-            <form id="studentForm">
-                <input type="hidden" id="studentId">
-                <div class="form-group">
-                    <label for="modalName">اسم الطالب:</label>
-                    <input type="text" id="modalName" required>
-                </div>
-                <div class="form-group">
-                    <label for="modalClass">الفصل:</label>
-                    <select id="modalClass" required>
-                        <option value="1/1">1/1</option>
-                        <option value="1/2">1/2</option>
-                        <option value="1/3">1/3</option>
-                        <option value="2/عام">2/عام</option>
-                        <option value="2/صحة">2/صحة</option>
-                        <option value="2/هندسة">2/هندسة</option>
-                        <option value="3/عام">3/عام</option>
-                        <option value="3/صحة">3/صحة</option>
-                        <option value="3/هندسة">3/هندسة</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="modalPoints">النقاط:</label>
-                    <input type="number" id="modalPoints" required>
-                </div>
-                <div class="form-group">
-                    <label for="modalDate">تاريخ التعديل:</label>
-                    <input type="date" id="modalDate" required>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="modal-btn cancel-btn" id="cancelStudentBtn">إلغاء</button>
-                    <button type="submit" class="modal-btn submit-btn" id="saveStudentBtn">حفظ</button>
-                </div>
-            </form>
         </div>
     </div>
 
-    <div id="importModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="modal-title">استيراد بيانات من إكسل</span>
-                <span class="close-btn">&times;</span>
+    <div id="importModal" class="modal-overlay">
+        <div class="confirmation-modal">
+            <div class="confirmation-content">
+                <div class="modal-header">
+                    <span class="modal-title">استيراد بيانات من إكسل</span>
+                    <button class="close-btn" onclick="closeModal('importModal')">&times;</button>
+                </div>
+                <form id="importForm">
+                    <div class="file-upload-area">
+                        <div class="upload-icon">
+                            <i>📁</i>
+                        </div>
+                        <div class="upload-instructions">
+                            <p>اسحب وأسقط ملف إكسل هنا أو</p>
+                            <label for="excelFile" class="file-browse-btn">اختر ملف</label>
+                            <input type="file" id="excelFile" accept=".xlsx, .xls" required onchange="updateFileName(this)">
+                        </div>
+                        <div class="file-info" id="fileInfo">
+                            <span id="fileName">لم يتم اختيار ملف</span>
+                            <button type="button" id="clearFile" class="clear-file-btn" onclick="clearFileSelection()" style="display: none;">×</button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="importClass">تعيين الفصل:</label>
+                        <select id="importClass" required>
+                            <option value="1/1">1/1</option>
+                            <option value="1/2">1/2</option>
+                            <option value="1/3">1/3</option>
+                            <option value="2/عام">2/عام</option>
+                            <option value="2/صحة">2/صحة</option>
+                            <option value="2/هندسة">2/هندسة</option>
+                            <option value="3/عام">3/عام</option>
+                            <option value="3/صحة">3/صحة</option>
+                            <option value="3/هندسة">3/هندسة</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="importMethod">طريقة الاستيراد:</label>
+                        <select id="importMethod">
+                            <option value="append">إضافة إلى البيانات الحالية</option>
+                            <option value="replace">استبدال جميع البيانات الحالية</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="modal-btn cancel-btn" onclick="closeModal('importModal')">إلغاء</button>
+                        <button type="submit" class="modal-btn submit-btn">استيراد</button>
+                    </div>
+                </form>
             </div>
-            <form id="importForm">
-                <div class="file-upload-area">
-                    <div class="upload-icon">
-                        <i>📁</i>
-                    </div>
-                    <div class="upload-instructions">
-                        <p>اسحب وأسقط ملف إكسل هنا أو</p>
-                        <label for="excelFile" class="file-browse-btn">اختر ملف</label>
-                        <input type="file" id="excelFile" accept=".xlsx, .xls" required>
-                    </div>
-                    <div class="file-info" id="fileInfo">
-                        <span id="fileName">لم يتم اختيار ملف</span>
-                        <button type="button" id="clearFile" class="clear-file-btn">×</button>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="importClass">تعيين الفصل:</label>
-                    <select id="importClass" required>
-                        <!-- خيارات الفصول هنا -->
-                        <option value="1/1">1/1</option>
-                        <option value="1/2">1/2</option>
-                        <option value="1/3">1/3</option>
-                        <option value="2/عام">2/عام</option>
-                        <option value="2/صحة">2/صحة</option>
-                        <option value="2/هندسة">2/هندسة</option>
-                        <option value="3/عام">3/عام</option>
-                        <option value="3/صحة">3/صحة</option>
-                        <option value="3/هندسة">3/هندسة</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="importMethod">طريقة الاستيراد:</label>
-                    <select id="importMethod">
-                        <option value="append">إضافة إلى البيانات الحالية</option>
-                        <option value="replace">استبدال جميع البيانات الحالية</option>
-                    </select>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="modal-btn cancel-btn">إلغاء</button>
-                    <button type="submit" class="modal-btn submit-btn">استيراد</button>
-                </div>
-            </form>
         </div>
     </div>
 
     <!-- نافذة النقاط الجماعية -->
-    <div id="bulkPointsModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="modal-title">إدارة النقاط الجماعية</span>
-                <span class="close-btn" id="closeBulkModal">&times;</span>
-            </div>
-            <form id="bulkPointsForm">
-                <div class="form-group">
-                    <label for="bulkPointsAmount">عدد النقاط:</label>
-                    <input type="number" id="bulkPointsAmount" required>
+    <div id="bulkPointsModal" class="modal-overlay">
+        <div class="confirmation-modal">
+            <div class="confirmation-content">
+                <div class="modal-header">
+                    <span class="modal-title">إدارة النقاط الجماعية</span>
+                    <button class="close-btn" onclick="closeModal('bulkPointsModal')">&times;</button>
                 </div>
-                <div class="form-group">
-                    <label for="bulkOperationType">نوع العملية:</label>
-                    <select id="bulkOperationType">
-                        <option value="add">إضافة نقاط</option>
-                        <option value="subtract">خصم نقاط</option>
-                    </select>
-                </div>
-                <!-- في نافذة النقاط الجماعية -->
+                <form id="bulkPointsForm">
+                    <div class="form-group">
+                        <label for="bulkPointsAmount">عدد النقاط:</label>
+                        <input type="number" id="bulkPointsAmount" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bulkOperationType">نوع العملية:</label>
+                        <select id="bulkOperationType">
+                            <option value="add">إضافة نقاط</option>
+                            <option value="subtract">خصم نقاط</option>
+                        </select>
+                    </div>
+                    <!-- في نافذة النقاط الجماعية -->
 <div class="form-group">
     <label for="bulkDate">تاريخ التعديل:</label>
     <input type="date" id="bulkDate" required>
 </div>
-                <div class="form-group">
-                    <label for="bulkApplyTo">تطبيق على:</label>
-                    <select id="bulkApplyTo">
-                        <option value="all">جميع الطلاب</option>
-                        <option value="class">فصل معين</option>
-                        <option value="selected">الطلاب المحددين فقط</option>
+                    <div class="form-group">
+                        <label for="bulkApplyTo">تطبيق على:</label>
+                        <select id="bulkApplyTo">
+                            <option value="all">جميع الطلاب</option>
+                            <option value="class">فصل معين</option>
+                            <option value="selected">الطلاب المحددين فقط</option>
 
-                    </select>
-                </div>
-                <div class="form-group" id="bulkClassSelection" style="display:none;">
-                    <label for="bulkClass">اختيار الفصل:</label>
-                    <select id="bulkClass">
-                        <option value="1/1">1/1</option>
-                        <option value="1/2">1/2</option>
-                        <option value="1/3">1/3</option>
-                        <option value="2/عام">2/عام</option>
-                        <option value="2/صحة">2/صحة</option>
-                        <option value="2/هندسة">2/هندسة</option>
-                        <option value="3/عام">3/عام</option>
-                        <option value="3/صحة">3/صحة</option>
-                        <option value="3/هندسة">3/هندسة</option>
-                    </select>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="modal-btn cancel-btn" id="cancelBulkBtn">إلغاء</button>
-                    <button type="submit" class="modal-btn submit-btn" id="applyBulkBtn">تطبيق</button>
-                </div>
-            </form>
+                        </select>
+                    </div>
+                    <div class="form-group" id="bulkClassSelection" style="display:none;">
+                        <label for="bulkClass">اختيار الفصل:</label>
+                        <select id="bulkClass">
+                            <option value="1/1">1/1</option>
+                            <option value="1/2">1/2</option>
+                            <option value="1/3">1/3</option>
+                            <option value="2/عام">2/عام</option>
+                            <option value="2/صحة">2/صحة</option>
+                            <option value="2/هندسة">2/هندسة</option>
+                            <option value="3/عام">3/عام</option>
+                            <option value="3/صحة">3/صحة</option>
+                            <option value="3/هندسة">3/هندسة</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="modal-btn cancel-btn" onclick="closeModal('bulkPointsModal')">إلغاء</button>
+                        <button type="submit" class="modal-btn submit-btn" id="applyBulkBtn">تطبيق</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
     <!-- رسالة تأكيد الحذف -->
-    <div id="deleteConfirmation" class="confirmation-modal">
-        <div class="confirmation-text" id="confirmationMessage"></div>
-        <div class="confirmation-buttons">
-            <button class="modal-btn cancel-btn" id="cancelDeleteBtn">إلغاء</button>
-            <button class="modal-btn delete-btn" id="confirmDeleteBtn">تأكيد الحذف</button>
+    <div id="deleteConfirmation" class="modal-overlay">
+        <div class="confirmation-modal">
+            <div class="confirmation-content">
+                <div class="confirmation-icon">⚠️</div>
+                <h3>تأكيد الحذف</h3>
+                <p>هل أنت متأكد من رغبتك في حذف الطلاب المحددين؟</p>
+                <p class="warning-text">لا يمكن التراجع عن هذا الإجراء بعد التنفيذ</p>
+                <div class="confirmation-buttons">
+                    <button onclick="closeModal('deleteConfirmation')" class="cancel-btn">إلغاء</button>
+                    <button onclick="confirmDelete()" class="confirm-btn">تأكيد الحذف</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -260,58 +269,62 @@
     </div>
    
     <!-- أضف هذا في نهاية body -->
-<div id="actionModal" class="modal">
-    <div class="modal-content action-modal">
-        <div class="modal-header">
-            <span class="modal-title">الإجراءات</span>
-            <span class="close-btn" onclick="closeActionModal()">&times;</span>
-        </div>
-        <div class="modal-body">
-            <button class="modal-action-btn edit-btn">✏️ تعديل</button>
-            <button class="modal-action-btn history-btn">🕒 التاريخ</button>
-            <button class="modal-action-btn delete-btn">🗑️ حذف</button>
+<div id="actionModal" class="modal-overlay">
+    <div class="confirmation-modal">
+        <div class="confirmation-content">
+            <div class="modal-header">
+                <span class="modal-title">الإجراءات</span>
+                <button class="close-btn" onclick="closeModal('actionModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <button class="modal-action-btn edit-btn" onclick="handleActionButton('edit')">✏️ تعديل</button>
+                <button class="modal-action-btn history-btn" onclick="handleActionButton('history')">🕒 التاريخ</button>
+                <button class="modal-action-btn delete-btn" onclick="handleActionButton('delete')">🗑️ حذف</button>
+            </div>
         </div>
     </div>
 </div>
 <button id="scrollToTopBtn" class="scroll-to-top" title="العودة إلى الأعلى">
     <i class="fas fa-arrow-up"></i> <!-- أو استخدم رمز السهم ▲ -->
 </button>
-<div id="exportOptionsModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 class="modal-title">خيارات التصدير</h2>
-            <span class="close-btn" onclick="closeModal('exportOptionsModal')">&times;</span>
-        </div>
-
-        <div class="modal-body">
-            <div class="form-group">
-                <label for="exportOption">نوع التصدير:</label>
-                <select id="exportOption" class="form-control" onchange="toggleExportClassSelection()">
-                    <option value="all">تصدير جميع الطلاب</option>
-                    <option value="class">تصدير فصل معين</option>
-                    <option value="top10">تصدير العشرة الأوائل</option>
-                </select>
+<!-- تعديل نافذة خيارات التصدير -->
+<div id="exportOptionsModal" class="modal-overlay">
+    <div class="confirmation-modal">
+        <div class="confirmation-content">
+            <div class="modal-header">
+                <span class="modal-title">خيارات التصدير</span>
+                <button class="close-btn" onclick="closeModal('exportOptionsModal')">&times;</button>
             </div>
+            <form id="exportForm">
+                <div class="form-group">
+                    <label for="exportOption">نوع التصدير:</label>
+                    <select id="exportOption" class="form-control" onchange="toggleExportClassSelection()">
+                        <option value="all">تصدير جميع الطلاب</option>
+                        <option value="class">تصدير فصل معين</option>
+                        <option value="top10">تصدير العشرة الأوائل</option>
+                    </select>
+                </div>
 
-            <div id="exportClassSelection" class="form-group" style="display: none;">
-                <label for="exportClassSelect">اختر الفصل:</label>
-                <select id="exportClassSelect" class="form-control">
-                    <option value="1/1">1/1</option>
-                    <option value="1/2">1/2</option>
-                    <option value="1/3">1/3</option>
-                    <option value="2/عام">2/عام</option>
-                    <option value="2/صحة">2/صحة</option>
-                    <option value="2/هندسة">2/هندسة</option>
-                    <option value="3/عام">3/عام</option>
-                    <option value="3/صحة">3/صحة</option>
-                    <option value="3/هندسة">3/هندسة</option>
-                </select>
-            </div>
-        </div>
+                <div id="exportClassSelection" class="form-group" style="display: none;">
+                    <label for="exportClassSelect">اختر الفصل:</label>
+                    <select id="exportClassSelect" class="form-control">
+                        <option value="1/1">1/1</option>
+                        <option value="1/2">1/2</option>
+                        <option value="1/3">1/3</option>
+                        <option value="2/عام">2/عام</option>
+                        <option value="2/صحة">2/صحة</option>
+                        <option value="2/هندسة">2/هندسة</option>
+                        <option value="3/عام">3/عام</option>
+                        <option value="3/صحة">3/صحة</option>
+                        <option value="3/هندسة">3/هندسة</option>
+                    </select>
+                </div>
 
-        <div class="modal-footer">
-            <button onclick="closeModal('exportOptionsModal')" class="modal-btn cancel-btn">إلغاء</button>
-            <button onclick="handleExport()" class="modal-btn submit-btn">تأكيد التصدير</button>
+                <div class="form-actions">
+                    <button type="button" class="modal-btn cancel-btn" onclick="closeModal('exportOptionsModal')">إلغاء</button>
+                    <button type="button" class="modal-btn submit-btn" onclick="handleExport()">تصدير</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -320,79 +333,527 @@
 
 
 <!-- نافذة التأكيد المخصصة -->
-<div id="logoutConfirmation" class="confirmation-modal">
-    <div class="confirmation-content">
-        <p>هل أنت متأكد من رغبتك في تسجيل الخروج؟</p>
-        <div class="confirmation-buttons">
-            <button onclick="performLogout()" class="confirm-btn">نعم</button>
-            <button onclick="closeLogoutModal()" class="cancel-btn">لا</button>
+<div id="logoutConfirmation" class="modal-overlay">
+    <div class="confirmation-modal">
+        <div class="confirmation-content">
+            <p>هل أنت متأكد من رغبتك في تسجيل الخروج؟</p>
+            <div class="confirmation-buttons">
+                <button onclick="performLogout()" class="confirm-btn">نعم</button>
+                <button onclick="closeModal('logoutConfirmation')" class="cancel-btn">لا</button>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- أنماط CSS -->
 <style>
-.confirmation-modal {
-    display: none;
+/* إعادة تعريف كامل لأنماط النوافذ */
+.modal-overlay {
     position: fixed;
-    top: 50%;
-    left: 50;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+    z-index: 1000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.confirmation-modal {
+    position: relative;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #0000008a;   
+   
 }
 
 .confirmation-content {
-    background: white;
-    width: 300px;
-    padding: 20px;
-    border-radius: 8px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    background: rgb(251, 249, 249);
+    width: 400px;
+    max-width: 90%;
+    padding: 25px;
+    border-radius: 12px;
     text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    position: relative;
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* تحسين التجاوب مع الشاشات الصغيرة */
+@media (max-width: 480px) {
+    .confirmation-content {
+        width: 95%;
+        margin: 10px;
+        padding: 20px;
+    }
+}
+
+.confirmation-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+    animation: iconShake 0.5s ease;
+}
+
+.confirmation-content h3 {
+    color: #e74c3c;
+    font-size: 24px;
+    margin: 0 0 15px 0;
+    font-weight: bold;
+}
+
+.confirmation-content p {
+    color: #2c3e50;
+    font-size: 16px;
+    margin: 0 0 10px 0;
+    line-height: 1.5;
+}
+
+.warning-text {
+    color: #e74c3c;
+    font-size: 14px;
+    font-style: italic;
+    margin: 15px 0 25px 0;
+    padding: 10px;
+    background: #fff5f5;
+    border-radius: 8px;
+    border: 1px solid #ffe0e0;
 }
 
 .confirmation-buttons {
-    margin-top: 20px;
     display: flex;
-    gap: 10px;
+    gap: 15px;
     justify-content: center;
 }
 
-.confirm-btn, .cancel-btn {
-    padding: 8px 20px;
+.confirmation-buttons button {
+    padding: 12px 25px;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
+    font-size: 15px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    min-width: 120px;
 }
 
 .confirm-btn {
-    background: #4CAF50;
+    background: #e74c3c;
     color: white;
 }
 
+.confirm-btn:hover {
+    background: #c0392b;
+    transform: translateY(-2px);
+}
+
 .cancel-btn {
-    background: #f44336;
+    background: #f1f1f1;
+    color: #666;
+}
+
+.cancel-btn:hover {
+    background: #e0e0e0;
+    transform: translateY(-2px);
+}
+
+@keyframes iconShake {
+    0%, 100% { transform: rotate(0); }
+    25% { transform: rotate(-10deg); }
+    75% { transform: rotate(10deg); }
+}
+
+.file-info {
+    margin-top: 10px;
+    padding: 8px;
+    background: #f5f5f5;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#fileName {
+    font-size: 14px;
+    color: #333;
+    word-break: break-all;
+}
+
+.clear-file-btn {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 5px;
+}
+
+.clear-file-btn:hover {
+    color: #f44336;
+}
+
+.file-browse-btn {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #4CAF50;
     color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 5px 0;
+}
+
+.file-browse-btn:hover {
+    background: #45a049;
+}
+
+/* تحديث أنماط الأزرار */
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    padding: 5px 10px;
+    transition: color 0.3s ease;
+}
+
+.close-btn:hover {
+    color: #e74c3c;
+}
+
+.modal-action-btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.modal-action-btn.edit-btn {
+    background: #3498db;
+    color: white;
+}
+
+.modal-action-btn.history-btn {
+    background: #2ecc71;
+    color: white;
+}
+
+.modal-action-btn.delete-btn {
+    background: #e74c3c;
+    color: white;
+}
+
+.modal-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* تحديث أنماط النموذج */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.modal-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.modal-btn.cancel-btn {
+    background: #f1f1f1;
+    color: #666;
+}
+
+.modal-btn.submit-btn {
+    background: #3498db;
+    color: white;
+}
+
+.modal-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.modal-btn.cancel-btn:hover {
+    background: #e0e0e0;
+}
+
+.modal-btn.submit-btn:hover {
+    background: #2980b9;
+}
+
+
+
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    padding: 0 20px;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    justify-content: flex-end;
+}
+
+
+/* تحسين التجاوب مع الشاشات الصغيرة */
+@media (max-width: 768px) {
+    .nav-container {
+        padding: 0 10px;
+    }
+    
+    .date-display {
+        font-size: 0.9em;
+        padding: 4px 10px;
+        white-space: nowrap;
+    }
+    
+    .school-logo {
+        height: 30px;
+    }
+    
+    .nav-link {
+        padding: 6px 12px;
+        font-size: 0.9em;
+    }
 }
 </style>
 
 <!-- السكريبت -->
 <script>
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.classList.add('active');
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.classList.remove('active');
+}
+
 function confirmLogout() {
-    document.getElementById('logoutConfirmation').style.display = 'block';
+    openModal('logoutConfirmation');
 }
 
 function closeLogoutModal() {
-    document.getElementById('logoutConfirmation').style.display = 'none';
+    closeModal('logoutConfirmation');
 }
 
 function performLogout() {
     // يمكنك إضافة أي عمليات تنظيف هنا قبل التوجيه
     window.location.href = "index.html";
+}
+
+function updateFileName(input) {
+    const fileNameElement = document.getElementById('fileName');
+    const clearButton = document.getElementById('clearFile');
+    
+    if (input.files && input.files[0]) {
+        fileNameElement.textContent = input.files[0].name;
+        clearButton.style.display = 'inline-block';
+    } else {
+        fileNameElement.textContent = 'لم يتم اختيار ملف';
+        clearButton.style.display = 'none';
+    }
+}
+
+function clearFileSelection() {
+    const fileInput = document.getElementById('excelFile');
+    const fileNameElement = document.getElementById('fileName');
+    const clearButton = document.getElementById('clearFile');
+    
+    fileInput.value = '';
+    fileNameElement.textContent = 'لم يتم اختيار ملف';
+    clearButton.style.display = 'none';
+}
+
+function deleteSelectedStudents() {
+    if (selectedStudents.size === 0) {
+        showAlert('الرجاء تحديد طالب واحد على الأقل', 'warning');
+        return;
+    }
+    openModal('deleteConfirmation');
+}
+
+function confirmDelete() {
+    students = students.filter(function(student) {
+        return !selectedStudents.has(student.id);
+    });
+    
+    // إرسال التحديث للخادم
+    saveChangesToServer(students);
+    
+    selectedStudents.clear();
+    closeModal('deleteConfirmation');
+    displayStudents();
+    showAlert('تم حذف الطلاب المحددين بنجاح', 'success');
+}
+
+// إضافة دالة معالجة أزرار الإجراءات
+function handleActionButton(action) {
+    if (!currentStudentId) return;
+    
+    switch(action) {
+        case 'edit':
+            editStudent(currentStudentId);
+            break;
+        case 'history':
+            showHistory(currentStudentId);
+            break;
+        case 'delete':
+            deleteSingleStudent(currentStudentId);
+            break;
+    }
+    closeModal('actionModal');
+}
+
+// تحديث دالة فتح نافذة الإجراءات
+function openActionModal() {
+    if (!currentStudentId) return;
+    openModal('actionModal');
+}
+
+// تحديث دالة إغلاق النوافذ
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('active');
+        if (modalId === 'actionModal') {
+            currentStudentId = null;
+        }
+    }
+}
+
+// تحديث دالة فتح النوافذ
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('active');
+    }
+}
+
+// دالة استيراد الطلاب من إكسل
+function handleImport(e) {
+    e.preventDefault();
+    const file = document.getElementById('excelFile').files[0];
+    if (!file) {
+        showAlert('الرجاء اختيار ملف إكسل', 'warning');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+        const selectedClass = document.getElementById('importClass').value;
+
+        const importedStudents = jsonData.map(function(row) {
+            return {
+                id: nextId++,
+                name: row['اسم الطالب'] || row['name'] || 'طالب جديد',
+                class: selectedClass,
+                points: parseInt(row['النقاط'] || row['points'] || 0),
+                history: [{
+                    date: new Date().toISOString().split('T')[0],
+                    oldPoints: 0,
+                    change: parseInt(row['النقاط'] || row['points'] || 0),
+                    newPoints: parseInt(row['النقاط'] || row['points'] || 0),
+                    reason: 'استيراد من إكسل',
+                    type: 'إضافة نقاط'
+                }]
+            };
+        });
+
+        if (document.getElementById('importMethod').value === 'replace') {
+            students = importedStudents;
+        } else {
+            students = students.concat(importedStudents);
+        }
+
+        // إرسال التحديث للخادم
+        saveChangesToServer(students);
+
+        // مسح ملف الإكسل بعد الاستيراد
+        clearFileSelection();
+        
+        closeModal('importModal');
+        displayStudents();
+        showAlert(`تم استيراد ${importedStudents.length} طالب`, 'success');
+    };
+    reader.readAsArrayBuffer(file);
 }
 </script>
 
@@ -434,15 +895,11 @@ function performLogout() {
 
     // تهيئة الصفحة عند التحميل
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('تم تحميل الصفحة بالكامل');
         init();
-        updateDate();
     });
 </script>
-<!-- admin.html -->
-<form id="updateForm">
-    <input type="text" id="dataInput" placeholder="Enter new data" />
-    <button type="submit">Update</button>
-  </form>
+
   
   <script>
     document.getElementById('updateForm').addEventListener('submit', function(e) {
@@ -461,6 +918,18 @@ function performLogout() {
       });
     });
   </script>
-  
+  <script>
+    function displayCurrentDate() {
+        const dateElement = document.getElementById("currentDate");
+        const today = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const arabicDate = today.toLocaleDateString('ar-EG', options);
+        dateElement.textContent = arabicDate;
+    }
+
+    // عرض التاريخ عند تحميل الصفحة
+    window.addEventListener('DOMContentLoaded', displayCurrentDate);
+</script>
+
 </body>
 </html>

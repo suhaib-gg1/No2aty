@@ -47,7 +47,7 @@
 /* أنماط شريط التنقل */
 .navbar {
     background-color: #242b3b;
-    color: white;
+    color: #ffffff;
     padding: 5px 0;
     position: sticky;
     top: 0;
@@ -64,13 +64,13 @@
     margin: 0 auto;
     padding: 0 8px;
     height: 100%;
+    position: relative;
 }
 
 .logo-container {
     display: flex;
     align-items: center;
-    gap: 6px;
-    margin-left: auto;
+    flex: 0 0 auto;
 }
 
 .school-logo {
@@ -79,17 +79,28 @@
 }
 
 .date-display {
-    color: white;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
     font-size: 15px;
+    color: #ffffff;
     font-weight: 500;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin: 0 5px;
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 5px 15px;
+    border-radius: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1;
+    min-width: 200px;
+    text-align: center;
 }
 
 .nav-links {
-    margin-right: auto;
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
 }
 
 .nav-link {
@@ -1031,4 +1042,26 @@ tr.top4-10:hover {
 /* أيقونات التميز */
 .top-rank-icon {
     margin-right: 5px;
+}
+
+/* تحسين التجاوب مع الشاشات الصغيرة */
+@media (max-width: 768px) {
+    .nav-container {
+        padding: 0 5px;
+    }
+    
+    .date-display {
+        font-size: 12px;
+        padding: 4px 10px;
+        min-width: 150px;
+        background-color: rgba(255, 255, 255, 0.15);
+    }
+}
+
+@media (max-width: 480px) {
+    .date-display {
+        font-size: 11px;
+        padding: 3px 8px;
+        min-width: 120px;
+    }
 }

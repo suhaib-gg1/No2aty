@@ -579,27 +579,45 @@ function handleImport(e) {
     reader.readAsArrayBuffer(file);
 }
 
+// دالة تبديل ظهور اختيار الفصل في نافذة التصدير
+function toggleExportClassSelection() {
+    const exportOption = document.getElementById('exportOption').value;
+    const classSelection = document.getElementById('exportClassSelection');
+    classSelection.style.display = exportOption === 'class' ? 'block' : 'none';
+}
+
 // دالة تصدير الطلاب إلى إكسل
 function handleExport() {
     const exportOption = document.getElementById('exportOption').value;
     const exportClass = document.getElementById('exportClassSelect').value;
     
-    let dataToExport = students;
+    let dataToExport = [...students];
+    
+    // تصفية حسب الفصل إذا تم اختيار فصل معين
     if (exportOption === 'class') {
-        dataToExport = students.filter(function(student) {
+        dataToExport = dataToExport.filter(function(student) {
             return student.class === exportClass;
         });
     }
     
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport.map(function(student) {
-        return {
-            'الرقم': student.id,
-            'اسم الطالب': student.name,
-            'الفصل': student.class,
-            'النقاط': student.points
-        };
+    // ترتيب الطلاب حسب النقاط (من الأعلى إلى الأقل)
+    dataToExport.sort((a, b) => {
+        if (b.points !== a.points) {
+            return b.points - a.points;
+        }
+        return a.id - b.id;
+    });
+    
+    // إضافة الترتيب للبيانات
+    const dataWithRank = dataToExport.map((student, index) => ({
+        'الترتيب': index + 1,
+        'الرقم': student.id,
+        'اسم الطالب': student.name,
+        'الفصل': student.class,
+        'النقاط': student.points
     }));
     
+    const worksheet = XLSX.utils.json_to_sheet(dataWithRank);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'الطلاب');
     

@@ -1,14 +1,17 @@
 {
-  "name": "no2aty",
+  "name": "student-points-system",
   "version": "1.0.0",
-  "description": "نظام مزامنة البيانات بين الأجهزة",
+  "description": "نظام إدارة نقاط الطلاب",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "firebase": "^9.6.1"
+    "socket.io": "^4.7.2",
+    "body-parser": "^1.20.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
-  
 }

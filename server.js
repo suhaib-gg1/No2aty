@@ -14,6 +14,11 @@ app.use(express.static(__dirname)); // يخدم الملفات من نفس ال�
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
+// Access codes
+const ACCESS_CODES = {
+  admin: "Admin123",
+  student: "StuD456"
+};
 
 // الاتصال بـ MongoDB
 const uri = process.env.MONGO_URI || 'mongodb+srv://suhaibwebdev:Suhaib**webdev1@cluster0.27qaqkx.mongodb.net/no2aty?retryWrites=true&w=majority&appName=Cluster0';

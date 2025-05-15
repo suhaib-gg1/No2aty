@@ -1,14 +1,19 @@
 const express = require('express');
 const { MongoClient } = require('mongodb');
 const path = require('path');
-require('dotenv').config(); // لدعم env من ملف .env إن أردت
+require('dotenv').config(); // لتحميل متغيرات البيئة
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // إعداد الميدل وير
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public'))); // ملفات HTML
+app.use(express.static(__dirname)); // يخدم الملفات من نفس المجلد
+
+// إرسال index.html عند الدخول إلى /
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // الاتصال بـ MongoDB
 const uri = process.env.MONGO_URI || 'mongodb+srv://suhaibwebdev:Suhaib**webdev1@cluster0.27qaqkx.mongodb.net/no2aty?retryWrites=true&w=majority&appName=Cluster0';
@@ -33,11 +38,11 @@ app.get('/students', async (req, res) => {
     const students = await studentsCollection.find().toArray();
     res.json(students);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch students' });
+    res.status(500).json({ error: '❌ Failed to fetch students' });
   }
 });
 
-// إضافة طالب
+// إضافة طالب جديد
 app.post('/students', async (req, res) => {
   try {
     const newStudent = req.body;

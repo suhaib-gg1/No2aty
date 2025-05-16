@@ -19,8 +19,8 @@ app.get(['/admin.html', '/student.html'], (req, res) => {
 
 // Access codes
 const ACCESS_CODES = {
-  admin: "Admin123",
-  student: "StuD456"
+  admin: "RtAdmin2025!",
+  student: "Tamayoz2025"
 };
 
 // In-memory data

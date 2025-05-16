@@ -1,20 +1,12 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<script>
-  // تحقق من وجود رمز الدخول الصحيح
-  var code = localStorage.getItem('access_code');
-  if (!code || code !== 'Admin123') {
-    window.location.replace('index.html');
-  }
-</script>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نقاطي - مدرسة ريادة التميز</title>
    <link rel="stylesheet" href="css.css">
         <link rel="icon" href="n.icon">
-
 </head>
 <body>
     <nav class="navbar">
@@ -79,6 +71,36 @@
             <tbody id="studentsList"></tbody>
         </table>
         
+    <!-- نافذة إضافة رمز جديد -->
+    <div id="addCodeModal" class="modal-overlay" style="display: none;">
+        <div class="confirmation-modal">
+            <div class="confirmation-content">
+                <div class="modal-header">
+                    <span class="modal-title">إضافة رمز دخول جديد</span>
+                    <button class="close-btn" onclick="closeModal('addCodeModal')">&times;</button>
+                </div>
+                <form id="addCodeForm">
+                    <div class="form-group">
+                        <label for="codeValue">الرمز:</label>
+                        <input type="text" id="codeValue" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="codeType">نوع الرمز:</label>
+                        <select id="codeType" required>
+                            <option value="student">طالب</option>
+                            <option value="admin">مشرف</option>
+                            <option value="custom">مخصص</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="modal-btn submit-btn">إضافة</button>
+                        <button type="button" class="modal-btn cancel-btn" onclick="closeModal('addCodeModal')">إلغاء</button>
+                    </div>
+                </form>
+                <div id="addCodeMsg" class="error-msg" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
     <!-- نوافذ منبثقة -->
     <div id="studentModal" class="modal-overlay">
         <div class="confirmation-modal">
@@ -332,6 +354,7 @@
                 <div class="form-actions">
                     <button type="button" class="modal-btn cancel-btn" onclick="closeModal('exportOptionsModal')">إلغاء</button>
                     <button type="button" class="modal-btn submit-btn" onclick="handleExport()">تصدير</button>
+                    <button type="button" class="modal-btn submit-btn" id="exportPDFCertificatesBtn" style="display:none;margin-top:8px" onclick="handleExportPDFCertificates()">تصدير شهادات PDF</button>
                 </div>
             </form>
         </div>
@@ -877,7 +900,56 @@ function handleImport(e) {
 </footer>
 <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="js.js"></script>
+<script>
+// زر فتح نافذة إضافة رمز
+const addCodeBtn = document.getElementById('addCodeBtn');
+if (addCodeBtn) {
+    addCodeBtn.addEventListener('click', function() {
+        document.getElementById('addCodeModal').style.display = 'block';
+    });
+}
+
+// معالجة إضافة رمز جديد
+const addCodeForm = document.getElementById('addCodeForm');
+if (addCodeForm) {
+    addCodeForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const codeValue = document.getElementById('codeValue').value.trim();
+        const codeType = document.getElementById('codeType').value;
+        const msg = document.getElementById('addCodeMsg');
+        msg.style.display = 'none';
+        if (!codeValue) {
+            msg.textContent = 'الرجاء إدخال رمز صالح';
+            msg.style.display = 'block';
+            return;
+        }
+        try {
+            const res = await fetch('/add-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: codeValue, type: codeType })
+            });
+            const result = await res.json();
+            if (result.success) {
+                msg.textContent = 'تمت إضافة الرمز بنجاح';
+                msg.style.color = '#4CAF50';
+                msg.style.display = 'block';
+                addCodeForm.reset();
+            } else {
+                msg.textContent = result.message || 'حدث خطأ أثناء الإضافة';
+                msg.style.color = '#f44336';
+                msg.style.display = 'block';
+            }
+        } catch (err) {
+            msg.textContent = 'تعذر الاتصال بالخادم';
+            msg.style.color = '#f44336';
+            msg.style.display = 'block';
+        }
+    });
+}
+</script>
 <script>
     const socket = io();
 

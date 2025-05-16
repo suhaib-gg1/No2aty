@@ -111,9 +111,10 @@
         }
 
         function validateInput(input) {
-            input.value = input.value.replace(/[^a-zA-Z0-9]/g, '');
-            document.getElementById('errorMsg').style.display = 'none';
-        }
+    // يسمح بالأحرف العربية والإنجليزية والأرقام وبعض الرموز الشائعة
+    input.value = input.value.replace(/[^\u0600-\u06FFa-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~` ]/g, '');
+    document.getElementById('errorMsg').style.display = 'none';
+}
 
         document.getElementById('accessCode').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') checkCode();

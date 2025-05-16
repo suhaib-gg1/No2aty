@@ -29,10 +29,12 @@ function openModal(modalId) {
 // دالة إغلاق النوافذ المنبثقة
 function closeModal(modalId) {
     document.getElementById(modalId).style.display = 'none';
-    // إعادة تعيين النموذج إذا كان موجوداً
-    const form = document.getElementById(modalId).querySelector('form');
-    if (form) {
-        form.reset();
+    // إعادة تعيين النموذج إذا كان موجوداً، باستثناء نافذة التصدير ونافذة النقاط الجماعية
+    if (modalId !== 'exportOptionsModal' && modalId !== 'bulkPointsModal') {
+        const form = document.getElementById(modalId).querySelector('form');
+        if (form) {
+            form.reset();
+        }
     }
 }
 
@@ -57,6 +59,16 @@ function openAddModal() {
 
 // دالة التهيئة الأولية
 function init() {
+    // استعادة آخر خيارات التصدير إذا وجدت
+    const lastExportOption = localStorage.getItem('lastExportOption');
+    const lastExportClass = localStorage.getItem('lastExportClass');
+    if (lastExportOption && document.getElementById('exportOption')) {
+        document.getElementById('exportOption').value = lastExportOption;
+        toggleExportClassSelection();
+    }
+    if (lastExportClass && document.getElementById('exportClassSelect')) {
+        document.getElementById('exportClassSelect').value = lastExportClass;
+    }
     console.log('بدء تهيئة الصفحة...');
     setupEventListeners();
     displayStudents();
@@ -68,10 +80,49 @@ function init() {
 
 // دالة إعداد مستمعي الأحداث
 function setupEventListeners() {
+    // حفظ آخر خيار تصدير عند تغييره
+    const exportOptionEl = document.getElementById('exportOption');
+    if (exportOptionEl) {
+        exportOptionEl.addEventListener('change', function() {
+            localStorage.setItem('lastExportOption', this.value);
+            // إذا كان خيار الفصل ظاهر، حدثه أيضاً
+            if (this.value === 'class') {
+                const classSelect = document.getElementById('exportClassSelect');
+                if (classSelect) {
+                    localStorage.setItem('lastExportClass', classSelect.value);
+                }
+            }
+        });
+    }
+    const exportClassEl = document.getElementById('exportClassSelect');
+    if (exportClassEl) {
+        exportClassEl.addEventListener('change', function() {
+            localStorage.setItem('lastExportClass', this.value);
+        });
+    }
     // أزرار النوافذ المنبثقة
     document.getElementById('addStudentBtn').addEventListener('click', openAddModal);
-    document.getElementById('importStudentsBtn').addEventListener('click', () => openModal('importModal'));
-    document.getElementById('exportStudentsBtn').addEventListener('click', () => openModal('exportOptionsModal'));
+    document.getElementById('importStudentsBtn').addEventListener('click', () => {
+    openModal('importModal');
+    // اجعل الخيار الافتراضي لاستيراد الفصول هو مخصص
+    const importClassSelect = document.getElementById('importClass');
+    if (importClassSelect) {
+        importClassSelect.value = 'custom';
+    }
+});
+    document.getElementById('exportStudentsBtn').addEventListener('click', () => {
+    openModal('exportOptionsModal');
+    // عند فتح نافذة التصدير، استرجع آخر خيار محفوظ وأعد تعيينه
+    const lastExportOption = localStorage.getItem('lastExportOption');
+    const lastExportClass = localStorage.getItem('lastExportClass');
+    if (lastExportOption && document.getElementById('exportOption')) {
+        document.getElementById('exportOption').value = lastExportOption;
+        toggleExportClassSelection();
+    }
+    if (lastExportClass && document.getElementById('exportClassSelect')) {
+        document.getElementById('exportClassSelect').value = lastExportClass;
+    }
+});
     document.getElementById('bulkPointsBtn').addEventListener('click', () => {
         document.getElementById('bulkDate').value = new Date().toISOString().split('T')[0];
         openModal('bulkPointsModal');
@@ -474,14 +525,24 @@ function handleBulkPoints(e) {
 
     // إظهار نافذة النقاط الجماعية
     openModal('bulkPointsModal');
-    
-    // تعيين القيمة الافتراضية لـ "تطبيق على" على فصل معين
+
+    // اجعل الخيار الافتراضي لقائمة "تطبيق على" هو 'class' عند كل فتح للنافذة
     const bulkApplyToSelector = document.getElementById('bulkApplyTo');
-    bulkApplyToSelector.value = 'class';
-    
-    // إظهار قائمة اختيار الفصل
-    const bulkClassSelection = document.getElementById('bulkClassSelection');
-    bulkClassSelection.style.display = 'block';
+    if (bulkApplyToSelector) {
+        // جلب آخر خيار محفوظ من localStorage
+        const lastBulkApplyTo = localStorage.getItem('lastBulkApplyTo') || 'class';
+        bulkApplyToSelector.value = lastBulkApplyTo;
+        // تفعيل ظهور قائمة الفصول مباشرة إذا كان الخيار 'class'
+        const bulkClassSelection = document.getElementById('bulkClassSelection');
+        if (bulkClassSelection) {
+            bulkClassSelection.style.display = bulkApplyToSelector.value === 'class' ? 'block' : 'none';
+        }
+        // إذا كان هناك دالة لتغيير العرض بناءً على الخيار، استدعها
+        if (typeof toggleBulkClassSelection === 'function') {
+            toggleBulkClassSelection();
+        }
+    }
+
 
     const points = parseInt(document.getElementById('bulkPointsAmount').value);
     const operation = document.getElementById('bulkOperationType').value;

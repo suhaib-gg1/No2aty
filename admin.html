@@ -142,16 +142,17 @@
                     <div class="form-group">
                         <label for="importClass">تعيين الفصل:</label>
                         <select id="importClass" required>
-                            <option value="1/1">1/1</option>
-                            <option value="1/2">1/2</option>
-                            <option value="1/3">1/3</option>
-                            <option value="2/عام">2/عام</option>
-                            <option value="2/صحة">2/صحة</option>
-                            <option value="2/هندسة">2/هندسة</option>
-                            <option value="3/عام">3/عام</option>
-                            <option value="3/صحة">3/صحة</option>
-                            <option value="3/هندسة">3/هندسة</option>
-                        </select>
+    <option value="1/1">1/1</option>
+    <option value="1/2">1/2</option>
+    <option value="1/3">1/3</option>
+    <option value="2/عام">2/عام</option>
+    <option value="2/صحة">2/صحة</option>
+    <option value="2/هندسة">2/هندسة</option>
+    <option value="3/عام">3/عام</option>
+    <option value="3/صحة">3/صحة</option>
+    <option value="3/هندسة">3/هندسة</option>
+    <option value="custom">مخصص...</option>
+</select>
                     </div>
                     
                     <div class="form-group">
@@ -930,6 +931,24 @@ function handleImport(e) {
     // عرض التاريخ عند تحميل الصفحة
     window.addEventListener('DOMContentLoaded', displayCurrentDate);
 </script>
+
+<script>
+// إظهار/إخفاء قائمة الفصول في نافذة النقاط الجماعية
+window.addEventListener('DOMContentLoaded', function() {
+    var bulkApplyTo = document.getElementById('bulkApplyTo');
+    var bulkClassSelection = document.getElementById('bulkClassSelection');
+    if (bulkApplyTo && bulkClassSelection) {
+        function toggleBulkClassSelection() {
+            bulkClassSelection.style.display = bulkApplyTo.value === 'class' ? 'block' : 'none';
+        }
+        bulkApplyTo.addEventListener('change', toggleBulkClassSelection);
+        // الحالة الابتدائية
+        toggleBulkClassSelection();
+    }
+});
+</script>
+
+    
 
 </body>
 </html>

@@ -472,6 +472,17 @@ function confirmDelete() {
 function handleBulkPoints(e) {
     e.preventDefault();
 
+    // إظهار نافذة النقاط الجماعية
+    openModal('bulkPointsModal');
+    
+    // تعيين القيمة الافتراضية لـ "تطبيق على" على فصل معين
+    const bulkApplyToSelector = document.getElementById('bulkApplyTo');
+    bulkApplyToSelector.value = 'class';
+    
+    // إظهار قائمة اختيار الفصل
+    const bulkClassSelection = document.getElementById('bulkClassSelection');
+    bulkClassSelection.style.display = 'block';
+
     const points = parseInt(document.getElementById('bulkPointsAmount').value);
     const operation = document.getElementById('bulkOperationType').value;
     const applyTo = document.getElementById('bulkApplyTo').value;
@@ -557,15 +568,22 @@ function handleImport(e) {
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-        const importedStudents = jsonData.map(function(row) {
-            return {
-                id: nextId++,
-                name: row['اسم الطالب'] || 'طالب جديد',
-                class: document.getElementById('importClass').value,
-                points: row['النقاط'] || 0,
-                history: []
-            };
-        });
+        const classSelect = document.getElementById('importClass');
+const importedStudents = jsonData.map(function(row) {
+    let studentClass = '';
+    if (classSelect.value === 'custom') {
+        studentClass = row['الفصل'] || row['class'] || '';
+    } else {
+        studentClass = classSelect.value;
+    }
+    return {
+        id: nextId++,
+        name: row['اسم الطالب'] || 'طالب جديد',
+        class: studentClass,
+        points: row['النقاط'] || 0,
+        history: []
+    };
+});
 
         if (document.getElementById('importMethod').value === 'replace') {
             students = importedStudents;

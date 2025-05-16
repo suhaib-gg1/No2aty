@@ -101,6 +101,8 @@
             const result = await response.json();
 
             if (result.success) {
+                // خزّن الرمز في localStorage
+                localStorage.setItem('access_code', enteredCode);
                 window.location.href = result.page;
             } else {
                 errorMsg.textContent = "الرمز غير صحيح، يرجى المحاولة مرة أخرى";

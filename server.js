@@ -12,6 +12,11 @@ const io = socketIO(server);
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, "/")));
 
+// Redirect admin.html and student.html to index.html
+app.get(['/admin.html', '/student.html'], (req, res) => {
+  res.redirect('/index.html');
+});
+
 // Access codes
 const ACCESS_CODES = {
   admin: "Admin123",
@@ -66,4 +71,3 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
-

@@ -80,7 +80,6 @@ io.on("connection", (socket) => {
   socket.on("updateFromAdmin", async (newData) => {
     try {
       // هنا مثال لحذف الكل ثم إعادة الإضافة (حسب طريقة تخزينك)
-      await Student.deleteMany({});
       await Student.insertMany(newData.students);
 
       // إعادة جلب البيانات وإرسالها للجميع

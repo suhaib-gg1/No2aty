@@ -22,7 +22,22 @@
         <div class="nav-container">
             <img src="snapedit_1730146554309.png" class="school-logo" alt="شعار المدرسة">
             <div class="date-display" id="currentDate"></div>
-            <a href="#" class="nav-link" title="تسجيل الخروج" onclick="confirmLogout()">تسجيل خروج</a>
+            <div class="nav-links">
+                <!-- Hamburger Menu Button -->
+                <button class="hamburger-btn" onclick="toggleMenu()">
+                    ☰
+                </button>
+
+                <!-- Mobile Menu -->
+                <div class="mobile-menu">
+                    <button class="theme-toggle" onclick="toggleTheme()" title="تبديل الوضع الليلي">
+                        <i>🌙</i> تبديل الوضع
+                    </button>
+                    <a href="#" class="nav-link" title="تسجيل الخروج" onclick="confirmLogout()">
+                        <span class="logout-icon">🚪</span> تسجيل خروج
+                    </a>
+                </div>
+            </div>
         </div>
     </nav>
 
@@ -220,6 +235,47 @@
             calculateRanks();
             updateDisplay();
         });
+    </script>
+
+    <script>
+    // دالة تبديل الوضع الليلي
+    function toggleTheme() {
+        const body = document.documentElement;
+        const currentTheme = body.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        body.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        
+        // تحديث أيقونة الزر
+        const themeIcon = document.querySelector('.theme-toggle i');
+        themeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+    }
+
+    // تحميل الوضع المحفوظ عند تحميل الصفحة
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        // تحديث أيقونة الزر
+        const themeIcon = document.querySelector('.theme-toggle i');
+        themeIcon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+    });
+
+    // دالة تبديل قائمة الهامبرغر
+    function toggleMenu() {
+        const mobileMenu = document.querySelector('.mobile-menu');
+        mobileMenu.classList.toggle('active');
+    }
+
+    // إغلاق القائمة عند النقر خارجها
+    document.addEventListener('click', (event) => {
+        const mobileMenu = document.querySelector('.mobile-menu');
+        const hamburgerBtn = document.querySelector('.hamburger-btn');
+        if (!mobileMenu.contains(event.target) && !hamburgerBtn.contains(event.target) && mobileMenu.classList.contains('active')) {
+            mobileMenu.classList.remove('active');
+        }
+    });
     </script>
 </body>
 </html>

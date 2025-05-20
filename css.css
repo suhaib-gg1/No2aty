@@ -1,4 +1,4 @@
-  /* إخفاء أزرار الإجراءات في جميع الشاشات */
+/* إخفاء أزرار الإجراءات في جميع الشاشات */
 .table-actions {
     display: none !important;
 }
@@ -63,8 +63,9 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 8px;
-    height: 100%;
+    min-height: 50px;
     position: relative;
+    z-index: 1;
 }
 
 .logo-container {
@@ -101,6 +102,7 @@
     display: flex;
     align-items: center;
     flex: 0 0 auto;
+    gap: 10px;
 }
 
 .nav-link {
@@ -168,6 +170,7 @@ h1 {
     border-radius: 5px;
     font-size: 16px;
     margin: 5px 0;
+    transition: all 0.3s ease-in-out, background-color 0.3s ease-in-out, color 0.3s ease-in-out, border-color 0.3s ease-in-out;
 }
 
 .action-buttons {
@@ -182,10 +185,42 @@ h1 {
     border-radius: 5px;
     cursor: pointer;
     font-size: 16px;
-    transition: all 0.3s;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     display: flex;
     align-items: center;
     gap: 5px;
+    transform-origin: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.action-btn:hover {
+    animation: buttonScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.action-btn:hover::before {
+    left: 100%;
+}
+
+.action-btn:active {
+    animation: buttonShake 0.3s ease-in-out;
 }
 
 .add-btn {
@@ -195,6 +230,8 @@ h1 {
 
 .add-btn:hover {
     background-color: #45a049;
+    animation: buttonScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
+               buttonGlow 2s infinite;
 }
 
 .import-btn {
@@ -204,6 +241,8 @@ h1 {
 
 .import-btn:hover {
     background-color: #0b7dda;
+    animation: buttonScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
+               buttonGlow 2s infinite;
 }
 
 .export-btn {
@@ -213,6 +252,8 @@ h1 {
 
 .export-btn:hover {
     background-color: #e68a00;
+    animation: buttonScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
+               buttonGlow 2s infinite;
 }
 
 .bulk-btn {
@@ -222,6 +263,19 @@ h1 {
 
 .bulk-btn:hover {
     background-color: #7b1fa2;
+    animation: buttonScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
+               buttonGlow 2s infinite;
+}
+
+.delete-selected-btn {
+    background-color: #d9534f;
+    color: white;
+}
+
+.delete-selected-btn:hover {
+    background-color: #c9302c;
+    animation: buttonScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
+               buttonGlow 2s infinite;
 }
 
 /* أنماط الجدول */
@@ -434,6 +488,10 @@ tr:hover {
     color: white;
 }
 
+.submit-btn:hover {
+    background-color: #388E3C; /* لون أخضر داكن */
+}
+
 /* رسالة تأكيد الحذف */
 .confirmation-modal {
     display: none;
@@ -511,39 +569,96 @@ tr:hover {
     animation: fadeIn 0.2s ease-out;
 }
 
-/* في الشاشات الصغيرة */
+/* تحديث أنماط القائمة المنسدلة */
+.mobile-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    background-color: #242b3b;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    border-radius: 5px;
+    overflow: hidden;
+    z-index: 999;
+    width: 250px;
+    padding: 10px 0;
+}
+
+.mobile-menu.active {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+/* توحيد أنماط الأزرار في القائمة */
+.mobile-menu button,
+.mobile-menu a {
+    display: block;
+    width: 100%;
+    padding: 12px 20px;
+    text-align: right;
+    color: white;
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mobile-menu button:hover,
+.mobile-menu a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    font-size: 18px; /* تكبير النص عند التحويم */
+    transform: translateX(-5px); /* إضافة حركة بسيطة للعنصر */
+}
+
+/* توحيد حجم زر تسجيل الخروج مع زر تبديل الوضع */
+.mobile-menu .theme-toggle,
+.mobile-menu .nav-link {
+    font-size: 16px !important;
+    padding: 12px 20px !important;
+    font-weight: normal;
+}
+
+/* توحيد حجم الأيقونات */
+.mobile-menu .theme-toggle i,
+.mobile-menu .logout-icon {
+    font-size: 18px !important;
+}
+
+/* تحديث أنماط الشاشات الصغيرة */
 @media (max-width: 768px) {
-    .mobile-dropdown {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 200px;
+    .mobile-menu button,
+    .mobile-menu a {
+        padding: 12px 20px;
+        font-size: 16px;
+        transition: all 0.3s ease;
     }
-    
-    .navbar {
-        padding: 4px 0;
-        min-height: 32px;
+
+    .mobile-menu button:hover,
+    .mobile-menu a:hover {
+        font-size: 18px;
+        transform: translateX(-5px);
     }
-    
-    .nav-container {
-        padding: 0 5px;
-        flex-wrap: nowrap;
+}
+
+/* تحديث أنماط الشاشات الصغيرة جداً */
+@media (max-width: 480px) {
+    .mobile-menu button,
+    .mobile-menu a {
+        padding: 10px 15px;
+        font-size: 15px;
+        transition: all 0.3s ease;
     }
-    
-    .date-display {
-        font-size: 10px !important;
-        max-width: 50%;
-        margin: 0 3px;
-    }
-    
-    .school-logo {
-        height: 30px !important;
-    }
-    
-    .nav-link {
-        font-size: 12px !important;
-        padding: 3px 6px !important;
+
+    .mobile-menu button:hover,
+    .mobile-menu a:hover {
+        font-size: 17px;
+        transform: translateX(-4px);
     }
 }
 
@@ -1063,5 +1178,881 @@ tr.top4-10:hover {
         font-size: 11px;
         padding: 3px 8px;
         min-width: 120px;
+    }
+}
+
+/* أنماط زر تبديل الوضع الليلي */
+.theme-toggle {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 15px;
+    transition: background-color 0.3s;
+}
+
+.theme-toggle:hover {
+    background-color: rgba(255,255,255,0.2);
+}
+
+.theme-toggle i {
+    font-size: 18px;
+}
+
+/* أنماط الوضع الليلي */
+[data-theme="dark"] {
+    --bg-primary: #121212;
+    --bg-secondary: #1e1e1e;
+    --bg-tertiary: #2c2c2c;
+    --text-primary: #e0e0e0;
+    --text-secondary: #bbbbbb;
+    --border-color: #333333;
+    --accent-color: #bb86fc;
+    --hover-color: #3700b3;
+    --card-bg: #1e1e1e;
+    --table-header-bg: #2c2c2c;
+    --table-row-hover: #2a2a2a;
+    --modal-bg: #1e1e1e;
+    --input-bg: #2c2c2c;
+    --input-border: #444444;
+    --gold-bg: #2d2a00;
+    --silver-bg: #2a2a2a;
+    --bronze-bg: #2a2d3a;
+    --top10-bg: #1a1a1a;
+    --modal-overlay-bg: rgba(0, 0, 0, 0.8);
+    --modal-content-bg: #1e1e1e;
+    --modal-border: #333333;
+    --modal-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    --top1-bg: #2d2a00;
+    --top2-bg: #2a2a2a;
+    --top3-bg: #2a2d3a;
+    --top4-10-bg: #1a1a1a;
+    --file-upload-bg: #2c2c2c; /* لون جديد لمنطقة رفع الملفات */
+    --file-upload-border: #555555; /* لون جديد لحدود المنطقة */
+    --code-container-bg: #1e1e1e; /* لون جديد لمربع إدخال الرمز */
+    --code-container-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .container {
+    background-color: var(--bg-secondary);
+    box-shadow: 0 0 12px rgba(0,0,0,0.2);
+}
+
+[data-theme="dark"] .navbar {
+    background-color: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .modal-content {
+    background-color: var(--modal-bg);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .modal-header {
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .close-btn {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .close-btn:hover {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] table {
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] th {
+    background-color: var(--table-header-bg);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] td {
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] tr:hover {
+    background-color: var(--table-row-hover);
+}
+
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .action-btn {
+    color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .add-btn {
+    background-color: #4CAF50;
+}
+
+[data-theme="dark"] .add-btn:hover {
+    background-color: #45a049;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .import-btn {
+    background-color: #2196F3;
+}
+
+[data-theme="dark"] .import-btn:hover {
+    background-color: #0b7dda;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .export-btn {
+    background-color: #ff9800;
+}
+
+[data-theme="dark"] .export-btn:hover {
+    background-color: #e68a00;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .bulk-btn {
+    background-color: #9c27b0;
+}
+
+[data-theme="dark"] .bulk-btn:hover {
+    background-color: #7b1fa2;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .delete-selected-btn {
+    background-color: #d9534f;
+}
+
+[data-theme="dark"] .delete-selected-btn:hover {
+    background-color: #c9302c;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .action-btn i {
+    color: white;
+    opacity: 0.9;
+}
+
+[data-theme="dark"] .action-btn:hover i {
+    opacity: 1;
+}
+
+[data-theme="dark"] .gold {
+    background-color: var(--gold-bg);
+}
+
+[data-theme="dark"] .silver {
+    background-color: var(--silver-bg);
+}
+
+[data-theme="dark"] .bronze {
+    background-color: var(--bronze-bg);
+}
+
+[data-theme="dark"] .top-10 {
+    background-color: var(--top10-bg);
+}
+
+[data-theme="dark"] .mobile-dropdown {
+    background-color: var(--bg-tertiary);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .copyright {
+    background-color: var(--bg-tertiary);
+    border-top-color: var(--border-color);
+}
+
+[data-theme="dark"] .luxury-footer {
+    background: linear-gradient(135deg, #1a1a1a 0%, #242b3b 100%);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .luxury-footer a {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .luxury-footer a:hover {
+    color: var(--accent-color);
+}
+
+[data-theme="dark"] .scroll-to-top {
+    background-color: var(--accent-color);
+}
+
+[data-theme="dark"] .scroll-to-top:hover {
+    background-color: var(--hover-color);
+}
+
+/* تحديث أنماط النوافذ المنبثقة في الوضع الليلي */
+[data-theme="dark"] .modal-overlay {
+    background-color: var(--modal-overlay-bg);
+    backdrop-filter: blur(5px);
+}
+
+[data-theme="dark"] .confirmation-content {
+    background-color: var(--modal-content-bg);
+    border: 1px solid var(--modal-border);
+    box-shadow: var(--modal-shadow);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .modal-header {
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-title {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .close-btn {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .close-btn:hover {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-group label {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-control {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .modal-btn.cancel-btn {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .modal-btn.cancel-btn:hover {
+    background-color: var(--table-row-hover);
+}
+
+[data-theme="dark"] .modal-btn.submit-btn {
+    background-color: var(--accent-color);
+    color: var(--bg-primary);
+}
+
+[data-theme="dark"] .modal-btn.submit-btn:hover {
+    background-color: var(--hover-color);
+}
+
+/* تحديث أنماط العشرة الأوائل في الوضع الليلي */
+[data-theme="dark"] tr.top-10 {
+    background-color: var(--top10-bg) !important;
+}
+
+[data-theme="dark"] tr.top-10:hover {
+    background-color: var(--table-row-hover) !important;
+}
+
+[data-theme="dark"] tr.gold {
+    background-color: var(--top1-bg) !important;
+}
+
+[data-theme="dark"] tr.silver {
+    background-color: var(--top2-bg) !important;
+}
+
+[data-theme="dark"] tr.bronze {
+    background-color: var(--top3-bg) !important;
+}
+
+[data-theme="dark"] tr.top4-10 {
+    background-color: var(--top4-10-bg) !important;
+}
+
+[data-theme="dark"] tr.top4-10:hover {
+    background-color: var(--table-row-hover) !important;
+}
+
+[data-theme="dark"] #studentsList tr:nth-child(-n+10) {
+    background-color: var(--top10-bg) !important;
+}
+
+[data-theme="dark"] #studentsList tr:nth-child(1) td:nth-child(2) {
+    color: #ffd700;
+}
+
+[data-theme="dark"] #studentsList tr:nth-child(2) td:nth-child(2) {
+    color: #c0c0c0;
+}
+
+[data-theme="dark"] #studentsList tr:nth-child(3) td:nth-child(2) {
+    color: #cd7f32;
+}
+
+/* تحديث أنماط رسائل التأكيد في الوضع الليلي */
+[data-theme="dark"] .confirmation-modal .confirmation-content {
+    background-color: var(--modal-content-bg);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .confirmation-modal .warning-text {
+    background-color: rgba(231, 76, 60, 0.1);
+    border-color: rgba(231, 76, 60, 0.2);
+    color: #ff6b6b;
+}
+
+[data-theme="dark"] .confirmation-modal .confirm-btn {
+    background-color: #e74c3c;
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .confirmation-modal .cancel-btn {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .confirmation-modal .cancel-btn:hover {
+    background-color: var(--table-row-hover);
+}
+
+/* تحديث أنماط منطقة تحميل الملفات في الوضع الليلي */
+[data-theme="dark"] .file-upload-area {
+    background-color: var(--file-upload-bg);
+    border-color: var(--file-upload-border);
+}
+
+[data-theme="dark"] .file-upload-area:hover {
+    border-color: var(--accent-color);
+    background-color: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .upload-icon {
+    color: var(--accent-color); /* تغيير لون الأيقونة */
+}
+
+[data-theme="dark"] .upload-instructions p {
+    color: var(--text-secondary); /* تغيير لون النص */
+}
+
+[data-theme="dark"] .file-browse-btn {
+    background-color: var(--accent-color);
+    color: var(--bg-primary);
+}
+
+[data-theme="dark"] .file-browse-btn:hover {
+    background-color: var(--hover-color);
+}
+
+[data-theme="dark"] .file-info {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] #fileName {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .clear-file-btn {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .clear-file-btn:hover {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] h1 {
+    color: var(--text-primary); /* توضيح عنوان الصفحة الرئيسي */
+}
+
+[data-theme="dark"] .confirmation-content p {
+    color: var(--text-primary); /* توضيح نص رسائل التأكيد */
+}
+
+/* تحديث أنماط السلكت (القوائم المنسدلة) في الوضع الليلي */
+[data-theme="dark"] select {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-primary);
+    transition: all 0.3s ease-in-out, background-color 0.3s ease-in-out, color 0.3s ease-in-out, border-color 0.3s ease-in-out;
+}
+
+[data-theme="dark"] select:hover {
+    border-color: var(--accent-color);
+    box-shadow: 0 2px 8px rgba(187, 134, 252, 0.15);
+}
+
+[data-theme="dark"] select:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 4px rgba(187, 134, 252, 0.2);
+}
+
+[data-theme="dark"] option {
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] option:hover {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] option:checked {
+    background-color: var(--bg-secondary);
+}
+
+/* أنماط الوضع الليلي */
+[data-theme="dark"] .code-container {
+    background-color: var(--code-container-bg);
+    box-shadow: var(--code-container-shadow);
+}
+
+[data-theme="dark"] .code-input {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .code-input::placeholder {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .submit-btn {
+    background-color: var(--accent-color);
+    color: var(--bg-primary);
+}
+
+[data-theme="dark"] .submit-btn:hover {
+    background-color: var(--hover-color);
+}
+
+[data-theme="dark"] .error-msg {
+    color: #ff6b6b;
+}
+
+/* تبسيط الانتقالات للعناصر الأساسية فقط */
+body,
+.container,
+.navbar,
+.modal-content,
+table,
+th,
+td,
+input,
+select,
+textarea,
+.action-btn,
+.mobile-dropdown,
+.copyright,
+.luxury-footer,
+.scroll-to-top,
+.file-upload-area,
+.modal-overlay,
+.confirmation-content,
+.form-control,
+.modal-btn,
+.file-info,
+.search-box input,
+.search-box select,
+.nav-link,
+.date-display,
+h1,
+.alert,
+.form-group label,
+.close-btn,
+.modal-title,
+.theme-toggle,
+tr.top-10,
+tr.gold,
+tr.silver,
+tr.bronze,
+tr.top4-10,
+#studentsList tr:nth-child(-n+10),
+.confirmation-modal .confirmation-content,
+.luxury-footer a {
+    transition: background-color 0.2s ease-out, 
+               color 0.2s ease-out;
+}
+
+/* تبسيط الانتقالات للوضع الليلي */
+[data-theme="dark"] body,
+[data-theme="dark"] .container,
+[data-theme="dark"] .navbar,
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] table,
+[data-theme="dark"] th,
+[data-theme="dark"] td,
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea,
+[data-theme="dark"] .action-btn,
+[data-theme="dark"] .mobile-dropdown,
+[data-theme="dark"] .copyright,
+[data-theme="dark"] .luxury-footer,
+[data-theme="dark"] .scroll-to-top,
+[data-theme="dark"] .file-upload-area,
+[data-theme="dark"] .modal-overlay,
+[data-theme="dark"] .confirmation-content,
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .modal-btn,
+[data-theme="dark"] .file-info,
+[data-theme="dark"] .search-box input,
+[data-theme="dark"] .search-box select,
+[data-theme="dark"] .nav-link,
+[data-theme="dark"] .date-display,
+[data-theme="dark"] h1,
+[data-theme="dark"] .alert,
+[data-theme="dark"] .form-group label,
+[data-theme="dark"] .close-btn,
+[data-theme="dark"] .modal-title,
+[data-theme="dark"] .theme-toggle,
+[data-theme="dark"] tr.top-10,
+[data-theme="dark"] tr.gold,
+[data-theme="dark"] tr.silver,
+[data-theme="dark"] tr.bronze,
+[data-theme="dark"] tr.top4-10,
+[data-theme="dark"] #studentsList tr:nth-child(-n+10),
+[data-theme="dark"] .confirmation-modal .confirmation-content,
+[data-theme="dark"] .luxury-footer a {
+    transition: background-color 0.2s ease-out, 
+               color 0.2s ease-out;
+}
+
+/* Ensure hamburger button is visible on all screen sizes */
+.hamburger-btn {
+    display: block; /* Show hamburger button by default */
+    background: none;
+    border: none;
+    color: white;
+    font-size: 32px; /* Further increased font size */
+    cursor: pointer;
+    padding: 0 ;/* Increased right padding */
+    /* Remove temporary styles if they are still here */
+    color: white !important; /* Revert temporary color */
+    z-index: auto !important; /* Revert temporary z-index */
+    transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out; /* Add transition for hover */
+}
+
+.hamburger-btn:hover {
+    background-color: rgba(255, 255, 255, 0); /* Subtle hover effect */
+    transform: scale(1.1); /* Increase size on hover */
+}
+
+/* Hide original nav links on small screens */
+@media (max-width: 768px) {
+    .nav-links > .theme-toggle,
+    .nav-links > .nav-link:not(.hamburger-btn) {
+        display: none; /* Hide regular nav links */
+    }
+    
+    /* Keep hamburger button visible on small screens */
+    .hamburger-btn {
+        display: block; /* Ensure it remains block on small screens */
+        color: white; /* Ensure correct color on small screens */
+        z-index: auto; /* Ensure correct z-index on small screens */
+        font-size: 32px; /* Ensure increased size on small screens too */
+        padding: 5px 15px; /* Ensure increased right padding on small screens */
+        transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out; /* Ensure transition on small screens too */
+    }
+
+    /* Ensure consistent font size for mobile menu items on small screens */
+    .mobile-menu button,
+    .mobile-menu a {
+        font-size: 16px; /* Set base font size for small screens */
+    }
+
+    /* Ensure hover font size is applied on small screens */
+    .mobile-menu button:hover,
+    .mobile-menu a:hover {
+         font-size: 18px; /* Ensure hover font size on small screens */
+    }
+
+    /* Adjust mobile menu position for smaller screens if needed */
+    .mobile-menu {
+        /* Example adjustment for smaller screens if default positioning isn't ideal */
+        /* right: 10px; */
+        /* top: 50px; */
+    }
+}
+
+/* Mobile menu styles */
+.mobile-menu {
+    display: none; /* Hidden by default */
+    position: absolute;
+    top: calc(100% + 5px); /* Add a small gap below navbar */
+    left: 0;
+    background-color: #242b3b; /* Match navbar background */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    border-radius: 5px;
+    overflow: hidden;
+    z-index: 999; /* Ensure menu is above navbar */
+    width: 250px; /* Increased width */
+    padding: 10px 0;
+}
+
+.mobile-menu.active {
+    display: flex; /* Show when active */
+    flex-direction: column;
+    gap: 5px;
+}
+
+.mobile-menu button,
+.mobile-menu a {
+    display: block;
+    width: 100%;
+    padding: 12px 20px; /* Adjusted padding */
+    text-align: right; /* Align text to the right for RTL */
+    color: white;
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px; /* Slightly increased font size */
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mobile-menu button:hover,
+.mobile-menu a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    font-size: 18px; /* تكبير النص عند التحويم */
+    transform: translateX(-5px); /* إضافة حركة بسيطة للعنصر */
+}
+
+/* Style for logout icon */
+.logout-icon {
+    margin-right: 5px; /* Add space between text and icon */
+    font-size: 16px; /* Ensure consistent icon size */
+    vertical-align: middle; /* Align icon vertically */
+}
+
+/* Adjust nav-links display for larger screens */
+.nav-links {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 10px; /* Add gap for non-hamburger view */
+}
+
+/* Dark mode styles for new elements (keep existing dark mode styles) */
+[data-theme="dark"] .hamburger-btn {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .mobile-menu {
+    background-color: var(--bg-tertiary);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+}
+
+[data-theme="dark"] .mobile-menu button,
+[data-theme="dark"] .mobile-menu a {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .mobile-menu button:hover,
+[data-theme="dark"] .mobile-menu a:hover {
+    background-color: var(--table-row-hover);
+    color: var(--text-primary); /* Ensure color stays consistent on hover in dark mode */
+}
+
+[data-theme="dark"] .logout-icon {
+    color: var(--text-primary); /* Ensure icon color is correct in dark mode */
+}
+
+/* Ensure proper box sizing for all elements */
+* {
+    box-sizing: border-box;
+}
+
+/* تعريف التأثيرات الحركية */
+@keyframes buttonScale {
+    0% { 
+        transform: scale(1);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    50% { 
+        transform: scale(1.15);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+    100% { 
+        transform: scale(1.1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    }
+}
+
+@keyframes buttonShake {
+    0%, 100% { transform: translateX(0) scale(1.1); }
+    25% { transform: translateX(-2px) scale(1.1); }
+    75% { transform: translateX(2px) scale(1.1); }
+}
+
+@keyframes buttonGlow {
+    0% { 
+        box-shadow: 0 0 5px rgba(255, 255, 255, 0.5),
+                    0 4px 15px rgba(0, 0, 0, 0.15);
+    }
+    50% { 
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.8),
+                    0 8px 25px rgba(0, 0, 0, 0.25);
+    }
+    100% { 
+        box-shadow: 0 0 5px rgba(255, 255, 255, 0.5),
+                    0 4px 15px rgba(0, 0, 0, 0.15);
+    }
+}
+
+/* تحديث أنماط أزرار الإجراءات */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transform-origin: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.action-btn:hover {
+    animation: buttonScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.action-btn:hover::before {
+    left: 100%;
+}
+
+.action-btn:active {
+    animation: buttonShake 0.3s ease-in-out;
+}
+
+/* تأثيرات خاصة لكل زر */
+.add-btn {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.add-btn:hover {
+    background-color: #45a049;
+    animation: buttonScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
+               buttonGlow 2s infinite;
+}
+
+.import-btn {
+    background-color: #2196F3;
+    color: white;
+}
+
+.import-btn:hover {
+    background-color: #0b7dda;
+    animation: buttonScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
+               buttonGlow 2s infinite;
+}
+
+.export-btn {
+    background-color: #ff9800;
+    color: white;
+}
+
+.export-btn:hover {
+    background-color: #e68a00;
+    animation: buttonScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
+               buttonGlow 2s infinite;
+}
+
+.bulk-btn {
+    background-color: #9c27b0;
+    color: white;
+}
+
+.bulk-btn:hover {
+    background-color: #7b1fa2;
+    animation: buttonScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
+               buttonGlow 2s infinite;
+}
+
+.delete-selected-btn {
+    background-color: #d9534f;
+    color: white;
+}
+
+.delete-selected-btn:hover {
+    background-color: #c9302c;
+    animation: buttonScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
+               buttonGlow 2s infinite;
+}
+
+/* تحديث أنماط الوضع الليلي */
+[data-theme="dark"] .action-btn {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .action-btn:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .action-btn::before {
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(255, 255, 255, 0.15),
+        transparent
+    );
+}
+
+/* تحسين التجاوب مع الشاشات الصغيرة */
+@media (max-width: 768px) {
+    .action-btn {
+        padding: 8px 15px;
+        font-size: 14px;
+    }
+    
+    .action-btn:hover {
+        transform: scale(1.05);
+    }
+    
+    .action-buttons {
+        gap: 8px;
     }
 }

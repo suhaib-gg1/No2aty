@@ -624,106 +624,40 @@ function handleImport(e) {
 
     const reader = new FileReader();
     reader.onload = function(e) {
-        try {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(sheet);
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-            if (jsonData.length === 0) {
-                showAlert('الملف لا يحتوي على بيانات', 'warning');
-                return;
-            }
+        const classSelect = document.getElementById('importClass');
+const importedStudents = jsonData.map(function(row) {
+    let studentClass = '';
+    if (classSelect.value === 'custom') {
+        studentClass = row['الفصل'] || row['class'] || '';
+    } else {
+        studentClass = classSelect.value;
+    }
+    return {
+        id: nextId++,
+        name: row['اسم الطالب'] || 'طالب جديد',
+        class: studentClass,
+        points: row['النقاط'] || 0,
+        history: []
+    };
+});
 
-            const classSelect = document.getElementById('importClass');
-            const importMethod = document.getElementById('importMethod').value;
-            const currentDate = new Date().toISOString().split('T')[0];
-
-            // التحقق من وجود الأعمدة المطلوبة
-            const firstRow = jsonData[0];
-            const hasRequiredColumns = Object.keys(firstRow).some(key => 
-                key === 'اسم الطالب' || key === 'name' || 
-                key === 'الفصل' || key === 'class' || 
-                key === 'النقاط' || key === 'points'
-            );
-
-            if (!hasRequiredColumns) {
-                showAlert('الملف يجب أن يحتوي على عمود اسم الطالب و/أو الفصل و/أو النقاط', 'warning');
-                return;
-            }
-
-            const importedStudents = jsonData.map(function(row) {
-                // استخراج البيانات مع دعم الأسماء العربية والإنجليزية
-                const name = row['اسم الطالب'] || row['name'] || 'طالب جديد';
-                let studentClass = '';
-                
-                if (classSelect.value === 'custom') {
-                    studentClass = row['الفصل'] || row['class'] || '';
-                    if (!studentClass) {
-                        showAlert(`لم يتم تحديد الفصل للطالب: ${name}`, 'warning');
-                        return null;
-                    }
-                } else {
-                    studentClass = classSelect.value;
-                }
-
-                // تحويل النقاط إلى رقم مع التحقق من صحتها
-                const points = parseInt(row['النقاط'] || row['points'] || 0);
-                if (isNaN(points) || points < 0) {
-                    showAlert(`قيمة النقاط غير صحيحة للطالب: ${name}`, 'warning');
-                    return null;
-                }
-
-                return {
-                    id: nextId++,
-                    name: name,
-                    class: studentClass,
-                    points: points,
-                    history: [{
-                        date: currentDate,
-                        oldPoints: 0,
-                        change: points,
-                        newPoints: points,
-                        reason: 'استيراد من إكسل',
-                        type: 'إضافة نقاط'
-                    }]
-                };
-            }).filter(student => student !== null); // إزالة الطلاب الذين فشل استيرادهم
-
-            if (importedStudents.length === 0) {
-                showAlert('لم يتم استيراد أي طالب بسبب أخطاء في البيانات', 'warning');
-                return;
-            }
-
-            // تحديث قائمة الطلاب حسب طريقة الاستيراد
-            if (importMethod === 'replace') {
-                students = importedStudents;
-            } else {
-                // التحقق من تكرار الأسماء قبل الإضافة
-                const existingNames = new Set(students.map(s => s.name));
-                const duplicates = importedStudents.filter(s => existingNames.has(s.name));
-                
-                if (duplicates.length > 0) {
-                    if (!confirm(`يوجد ${duplicates.length} طالب بأسماء مكررة. هل تريد المتابعة؟`)) {
-                        return;
-                    }
-                }
-                students = students.concat(importedStudents);
-            }
-
-            // إرسال التحديث للخادم
-            saveChangesToServer(students);
-
-            // مسح ملف الإكسل بعد الاستيراد
-            clearFileSelection();
-            
-            closeModal('importModal');
-            displayStudents();
-            showAlert(`تم استيراد ${importedStudents.length} طالب بنجاح`, 'success');
-        } catch (error) {
-            console.error('خطأ في استيراد الملف:', error);
-            showAlert('حدث خطأ أثناء استيراد الملف', 'error');
+        if (document.getElementById('importMethod').value === 'replace') {
+            students = importedStudents;
+        } else {
+            students = students.concat(importedStudents);
         }
+
+        // إرسال التحديث للخادم
+        saveChangesToServer(students);
+
+        closeModal('importModal');
+        displayStudents();
+        showAlert(`تم استيراد ${importedStudents.length} طالب`, 'success');
     };
     reader.readAsArrayBuffer(file);
 }

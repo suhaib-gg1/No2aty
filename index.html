@@ -50,6 +50,75 @@
             margin-top: 10px;
             display: none;
         }
+
+        /* تحديث أنماط شريط التنقل */
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+            width: 100%;
+        }
+
+        .nav-links {
+            display: flex !important;
+            visibility: visible !important;
+            align-items: center;
+            margin-right: 10px;
+        }
+
+        .theme-toggle {
+            display: flex !important;
+            visibility: visible !important;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 8px;
+            font-size: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        /* تحسين التجاوب مع الشاشات الصغيرة */
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 10px;
+            }
+
+            .nav-links {
+                display: flex !important;
+                visibility: visible !important;
+            }
+
+            .theme-toggle {
+                display: flex !important;
+                visibility: visible !important;
+                padding: 6px;
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-container {
+                padding: 0 8px;
+            }
+
+            .nav-links {
+                display: flex !important;
+                visibility: visible !important;
+            }
+
+            .theme-toggle {
+                display: flex !important;
+                visibility: visible !important;
+                padding: 5px;
+                font-size: 16px;
+            }
+        }
     </style>
 </head>
 <body class="student-view">
@@ -57,8 +126,8 @@
         <div class="nav-container">
             <img src="snapedit_1730146554309.png" class="school-logo" alt="شعار المدرسة">
             <div class="date-display" id="currentDate"></div>
-            <div class="nav-links">
-                <button class="theme-toggle" onclick="toggleTheme()" title="تبديل الوضع الليلي">
+            <div class="nav-links" style="display: flex !important; visibility: visible !important;">
+                <button class="theme-toggle" onclick="toggleTheme()" title="تبديل الوضع الليلي" style="display: flex !important; visibility: visible !important;">
                     <i>🌙</i>
                 </button>
             </div>

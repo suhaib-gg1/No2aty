@@ -302,8 +302,8 @@ tr:hover {
     background-color: #f9f9f9;
 }
 
-.top-3 {
-    background-color: #e8f5e9;
+.top-10-row {
+    background-color: #e6f3ff;
 }
 
 .modal {
@@ -1132,79 +1132,71 @@ tr.top4-10 {
 tr.top4-10:hover {
     background-color: #d9e8f7 !important;
 }
-/* تنسيق العشر الأوائل */
-#studentsList tr:nth-child(-n+10) {
-    background-color: #f0f8ff !important;
+/* تنسيق العشرة الأوائل */
+tr.top-10-row {
+    background-color: #e6f3ff !important;
     font-weight: bold;
 }
 
-/* تنسيق الثلاثة الأوائل */
-#studentsList tr:nth-child(1) td:nth-child(2) {
-    color: gold;
+tr.top-10-row:hover {
+    background-color: #d9e8f7 !important;
+}
+
+/* تنسيق الطالب الأول */
+tr.rank-1 td {
+    color: #ffd700; /* لون ذهبي */
     font-size: 1.2em;
+    font-weight: bold;
 }
 
-#studentsList tr:nth-child(2) td:nth-child(2) {
-    color: silver;
+/* تنسيق الطالب الثاني */
+tr.rank-2 td {
+    color: #c0c0c0; /* لون فضي */
+    font-size: 1.15em;
+    font-weight: bold;
+}
+
+/* تنسيق الطالب الثالث */
+tr.rank-3 td {
+    color: #cd7f32; /* لون برونزي */
     font-size: 1.1em;
+    font-weight: bold;
 }
 
-#studentsList tr:nth-child(3) td:nth-child(2) {
-    color: #cd7f32; /* برونز */
-    font-size: 1.1em;
+/* تحديث أنماط الوضع الليلي للعشرة الأوائل */
+[data-theme="dark"] tr.top-10-row {
+    background-color: #e6f3ff !important;
 }
 
-/* أيقونات التميز */
-.top-rank-icon {
-    margin-right: 5px;
+[data-theme="dark"] tr.top-10-row:hover {
+    background-color: #d9e8f7 !important;
 }
 
-/* تحسين التجاوب مع الشاشات الصغيرة */
-@media (max-width: 768px) {
-    .nav-container {
-        padding: 0 5px;
-    }
-    
-    .date-display {
-        font-size: 12px;
-        padding: 4px 10px;
-        min-width: 150px;
-        background-color: rgba(255, 255, 255, 0.15);
-    }
+/* تحديث أنماط الوضع الليلي للثلاثة الأوائل */
+[data-theme="dark"] tr.rank-1 td {
+    color: #ffd700; /* لون ذهبي في الوضع الليلي */
 }
 
-@media (max-width: 480px) {
-    .date-display {
-        font-size: 11px;
-        padding: 3px 8px;
-        min-width: 120px;
-    }
+[data-theme="dark"] tr.rank-2 td {
+    color: #c0c0c0; /* لون فضي في الوضع الليلي */
 }
 
-/* أنماط زر تبديل الوضع الليلي */
-.theme-toggle {
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 3px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 15px;
-    transition: background-color 0.3s;
+[data-theme="dark"] tr.rank-3 td {
+    color: #cd7f32; /* لون برونزي في الوضع الليلي */
 }
 
-.theme-toggle:hover {
-    background-color: rgba(255,255,255,0.2);
+/* إزالة تنسيقات الخلفية القديمة */
+tr.gold, tr.silver, tr.bronze {
+    background-color: transparent !important;
 }
 
-.theme-toggle i {
-    font-size: 18px;
+[data-theme="dark"] tr.gold,
+[data-theme="dark"] tr.silver,
+[data-theme="dark"] tr.bronze {
+    background-color: transparent !important;
 }
 
-/* أنماط الوضع الليلي */
+/* تحديث أنماط الوضع الليلي */
 [data-theme="dark"] {
     --bg-primary: #121212;
     --bg-secondary: #1e1e1e;
@@ -1223,18 +1215,16 @@ tr.top4-10:hover {
     --gold-bg: #2d2a00;
     --silver-bg: #2a2a2a;
     --bronze-bg: #2a2d3a;
-    --top10-bg: #1a1a1a;
+    --top10-bg: #161b1b;
     --modal-overlay-bg: rgba(0, 0, 0, 0.8);
     --modal-content-bg: #1e1e1e;
     --modal-border: #333333;
     --modal-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-    --top1-bg: #2d2a00;
-    --top2-bg: #2a2a2a;
-    --top3-bg: #2a2d3a;
-    --top4-10-bg: #1a1a1a;
-    --file-upload-bg: #2c2c2c; /* لون جديد لمنطقة رفع الملفات */
-    --file-upload-border: #555555; /* لون جديد لحدود المنطقة */
-    --code-container-bg: #1e1e1e; /* لون جديد لمربع إدخال الرمز */
+
+    --top4-10-bg: #181818; /* Made darker */
+    --file-upload-bg: #2c2c2c;
+    --file-upload-border: #555555;
+    --code-container-bg: #1e1e1e;
     --code-container-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
 }
 
@@ -1459,48 +1449,32 @@ tr.top4-10:hover {
 }
 
 /* تحديث أنماط العشرة الأوائل في الوضع الليلي */
-[data-theme="dark"] tr.top-10 {
-    background-color: var(--top10-bg) !important;
-}
-
-[data-theme="dark"] tr.top-10:hover {
-    background-color: var(--table-row-hover) !important;
-}
-
-[data-theme="dark"] tr.gold {
-    background-color: var(--top1-bg) !important;
-}
-
-[data-theme="dark"] tr.silver {
-    background-color: var(--top2-bg) !important;
-}
-
-[data-theme="dark"] tr.bronze {
-    background-color: var(--top3-bg) !important;
-}
-
-[data-theme="dark"] tr.top4-10 {
+[data-theme="dark"] tr.top-10-row {
     background-color: var(--top4-10-bg) !important;
 }
 
-[data-theme="dark"] tr.top4-10:hover {
+[data-theme="dark"] tr.top-10-row:hover {
     background-color: var(--table-row-hover) !important;
 }
 
-[data-theme="dark"] #studentsList tr:nth-child(-n+10) {
-    background-color: var(--top10-bg) !important;
+[data-theme="dark"] tr.rank-1 {
+    background-color: var( --top4-10-bg) !important;
 }
 
-[data-theme="dark"] #studentsList tr:nth-child(1) td:nth-child(2) {
-    color: #ffd700;
+[data-theme="dark"] tr.rank-2 {
+    background-color: var( --top4-10-bg) !important;
 }
 
-[data-theme="dark"] #studentsList tr:nth-child(2) td:nth-child(2) {
-    color: #c0c0c0;
+[data-theme="dark"] tr.rank-3 {
+    background-color: var( --top4-10-bg) !important;
 }
 
-[data-theme="dark"] #studentsList tr:nth-child(3) td:nth-child(2) {
-    color: #cd7f32;
+[data-theme="dark"] tr.top-10-row:not(.rank-1):not(.rank-2):not(.rank-3) {
+    background-color: var(--top4-10-bg) !important;
+}
+
+[data-theme="dark"] tr.top-10-row:not(.rank-1):not(.rank-2):not(.rank-3):hover {
+    background-color: var(--table-row-hover) !important;
 }
 
 /* تحديث أنماط رسائل التأكيد في الوضع الليلي */
@@ -1541,11 +1515,11 @@ tr.top4-10:hover {
 }
 
 [data-theme="dark"] .upload-icon {
-    color: var(--accent-color); /* تغيير لون الأيقونة */
+    color: var(--accent-color);
 }
 
 [data-theme="dark"] .upload-instructions p {
-    color: var(--text-secondary); /* تغيير لون النص */
+    color: var(--text-secondary);
 }
 
 [data-theme="dark"] .file-browse-btn {
@@ -1575,11 +1549,11 @@ tr.top4-10:hover {
 }
 
 [data-theme="dark"] h1 {
-    color: var(--text-primary); /* توضيح عنوان الصفحة الرئيسي */
+    color: var(--text-primary);
 }
 
 [data-theme="dark"] .confirmation-content p {
-    color: var(--text-primary); /* توضيح نص رسائل التأكيد */
+    color: var(--text-primary);
 }
 
 /* تحديث أنماط السلكت (القوائم المنسدلة) في الوضع الليلي */
@@ -1733,73 +1707,67 @@ tr.top4-10,
 
 /* Ensure hamburger button is visible on all screen sizes */
 .hamburger-btn {
-    display: block; /* Show hamburger button by default */
+    display: block;
     background: none;
     border: none;
     color: white;
-    font-size: 32px; /* Further increased font size */
+    font-size: 32px;
     cursor: pointer;
-    padding: 0 ;/* Increased right padding */
-    /* Remove temporary styles if they are still here */
-    color: white !important; /* Revert temporary color */
-    z-index: auto !important; /* Revert temporary z-index */
-    transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out; /* Add transition for hover */
+    padding: 0;
+    color: white !important;
+    z-index: auto !important;
+    transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
 }
 
 .hamburger-btn:hover {
-    background-color: rgba(255, 255, 255, 0); /* Subtle hover effect */
-    transform: scale(1.1); /* Increase size on hover */
+    background-color: rgba(255, 255, 255, 0);
+    transform: scale(1.1);
 }
 
 /* Hide original nav links on small screens */
 @media (max-width: 768px) {
     .nav-links > .theme-toggle,
     .nav-links > .nav-link:not(.hamburger-btn) {
-        display: none; /* Hide regular nav links */
+        display: none;
     }
     
-    /* Keep hamburger button visible on small screens */
     .hamburger-btn {
-        display: block; /* Ensure it remains block on small screens */
-        color: white; /* Ensure correct color on small screens */
-        z-index: auto; /* Ensure correct z-index on small screens */
-        font-size: 32px; /* Ensure increased size on small screens too */
-        padding: 5px 15px; /* Ensure increased right padding on small screens */
-        transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out; /* Ensure transition on small screens too */
+        display: block;
+        color: white;
+        z-index: auto;
+        font-size: 32px;
+        padding: 5px 15px;
+        transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
     }
 
-    /* Ensure consistent font size for mobile menu items on small screens */
     .mobile-menu button,
     .mobile-menu a {
-        font-size: 16px; /* Set base font size for small screens */
+        font-size: 16px;
     }
 
-    /* Ensure hover font size is applied on small screens */
     .mobile-menu button:hover,
     .mobile-menu a:hover {
-         font-size: 18px; /* Ensure hover font size on small screens */
+         font-size: 18px;
     }
-
-    /* Adjust mobile menu position for smaller screens if needed */
 }
 
 /* Mobile menu styles */
 .mobile-menu {
-    display: none; /* Hidden by default */
+    display: none;
     position: absolute;
-    top: calc(100% + 5px); /* Add a small gap below navbar */
+    top: calc(100% + 5px);
     left: 0;
-    background-color: #242b3b; /* Match navbar background */
+    background-color: #242b3b;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     border-radius: 5px;
     overflow: hidden;
-    z-index: 999; /* Ensure menu is above navbar */
-    width: 250px; /* Increased width */
+    z-index: 999;
+    width: 250px;
     padding: 10px 0;
 }
 
 .mobile-menu.active {
-    display: flex; /* Show when active */
+    display: flex;
     flex-direction: column;
     gap: 5px;
 }
@@ -1808,14 +1776,14 @@ tr.top4-10,
 .mobile-menu a {
     display: block;
     width: 100%;
-    padding: 12px 20px; /* Adjusted padding */
-    text-align: right; /* Align text to the right for RTL */
+    padding: 12px 20px;
+    text-align: right;
     color: white;
     text-decoration: none;
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 16px; /* Slightly increased font size */
+    font-size: 16px;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
@@ -1825,15 +1793,15 @@ tr.top4-10,
 .mobile-menu button:hover,
 .mobile-menu a:hover {
     background-color: rgba(255, 255, 255, 0.1);
-    font-size: 18px; /* تكبير النص عند التحويم */
-    transform: translateX(-5px); /* إضافة حركة بسيطة للعنصر */
+    font-size: 18px;
+    transform: translateX(-5px);
 }
 
 /* Style for logout icon */
 .logout-icon {
-    margin-right: 5px; /* Add space between text and icon */
-    font-size: 16px; /* Ensure consistent icon size */
-    vertical-align: middle; /* Align icon vertically */
+    margin-right: 5px;
+    font-size: 16px;
+    vertical-align: middle;
 }
 
 /* Adjust nav-links display for larger screens */
@@ -1841,7 +1809,7 @@ tr.top4-10,
     display: flex;
     align-items: center;
     flex: 0 0 auto;
-    gap: 10px; /* Add gap for non-hamburger view */
+    gap: 10px;
 }
 
 /* Dark mode styles for new elements (keep existing dark mode styles) */
@@ -1862,11 +1830,11 @@ tr.top4-10,
 [data-theme="dark"] .mobile-menu button:hover,
 [data-theme="dark"] .mobile-menu a:hover {
     background-color: var(--table-row-hover);
-    color: var(--text-primary); /* Ensure color stays consistent on hover in dark mode */
+    color: var(--text-primary);
 }
 
 [data-theme="dark"] .logout-icon {
-    color: var(--text-primary); /* Ensure icon color is correct in dark mode */
+    color: var(--text-primary);
 }
 
 /* Ensure proper box sizing for all elements */
@@ -2050,4 +2018,34 @@ tr.top4-10,
     .action-buttons {
         gap: 8px;
     }
+}
+
+/* تنسيق الميداليات في جدول الطلاب */
+#studentsTable td:first-child {
+    font-weight: bold;
+    font-size: 1.1em;
+    text-align: center;
+}
+
+#studentsTable tr.rank-1 td:first-child {
+    color: #ffd700; /* لون ذهبي */
+    font-size: 1.2em;
+}
+
+#studentsTable tr.rank-2 td:first-child {
+    color: #c0c0c0; /* لون فضي */
+    font-size: 1.15em;
+}
+
+#studentsTable tr.rank-3 td:first-child {
+    color: #cd7f32; /* لون برونزي */
+    font-size: 1.1em;
+}
+
+/* تحريك الميداليات عند التحويم */
+#studentsTable tr.rank-1:hover td:first-child,
+#studentsTable tr.rank-2:hover td:first-child,
+#studentsTable tr.rank-3:hover td:first-child {
+    transform: scale(1.1);
+    transition: transform 0.3s ease;
 }

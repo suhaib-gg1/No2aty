@@ -3,9 +3,9 @@
 
 <head>
 <script>
-  // تحقق من وجود رمز الدخول الصحيح
-  var code = localStorage.getItem('access_code');
-  if (!code || code !== 'Tamayoz2025') {
+  // تحقق من وجود جلسة مستخدم صالحة
+  const userType = localStorage.getItem('user_type');
+  if (!userType || userType !== 'student') {
     window.location.replace('index.html');
   }
 </script>
@@ -137,6 +137,8 @@
         document.getElementById('logoutConfirmation').style.display = 'none';
     }
     function performLogout() {
+        // حذف بيانات الجلسة
+        localStorage.removeItem('user_type');
         window.location.href = "index.html";
     }
     </script>
@@ -190,16 +192,31 @@
             filteredStudents.forEach(student => {
                 const row = document.createElement('tr');
                 const rank = classFilter ? student.localRank : student.globalRank;
+                
+                // إضافة الميداليات للطلاب الثلاثة الأوائل
+                let rankDisplay = rank;
+                if (rank === 1) {
+                    rankDisplay = '🥇 ' + rank;
+                    row.classList.add('rank-1');
+                } else if (rank === 2) {
+                    rankDisplay = '🥈 ' + rank;
+                    row.classList.add('rank-2');
+                } else if (rank === 3) {
+                    rankDisplay = '🥉 ' + rank;
+                    row.classList.add('rank-3');
+                }
+
                 row.innerHTML = `
-                    <td>${rank}</td>
+                    <td>${rankDisplay}</td>
                     <td>${student.name}</td>
                     <td>${student.class}</td>
                     <td>${student.points}</td>
                 `;
-                if (rank === 1) row.classList.add('gold');
-                else if (rank === 2) row.classList.add('silver');
-                else if (rank === 3) row.classList.add('bronze');
-                else if (rank >= 4 && rank <= 10) row.classList.add('top4-10');
+
+                if (rank >= 1 && rank <= 10) {
+                    row.classList.add('top-10-row');
+                }
+
                 tbody.appendChild(row);
             });
         }

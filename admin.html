@@ -7,6 +7,12 @@
     <title>نقاطي - مدرسة ريادة التميز</title>
     <!-- إضافة سكريبت تحميل الوضع قبل تحميل المحتوى -->
     <script>
+        // تحقق من وجود جلسة مستخدم صالحة
+        const userType = localStorage.getItem('user_type');
+        if (!userType || userType !== 'admin') {
+            window.location.replace('index.html');
+        }
+
         // تحميل الوضع المحفوظ قبل تحميل المحتوى
         (function() {
             const savedTheme = localStorage.getItem('theme') || 'light';
@@ -824,7 +830,8 @@ function closeLogoutModal() {
 }
 
 function performLogout() {
-    // يمكنك إضافة أي عمليات تنظيف هنا قبل التوجيه
+    // حذف بيانات الجلسة
+    localStorage.removeItem('user_type');
     window.location.href = "index.html";
 }
 

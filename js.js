@@ -272,13 +272,25 @@ function createStudentRow(student, rank) {
     var row = document.createElement('tr');
     row.setAttribute('data-id', student.id);
     
+    // إضافة فئات التنسيق بناءً على الترتيب
+    if (rank >= 1 && rank <= 10) {
+        row.classList.add('top-10-row');
+        if (rank === 1) {
+            row.classList.add('rank-1');
+        } else if (rank === 2) {
+            row.classList.add('rank-2');
+        } else if (rank === 3) {
+            row.classList.add('rank-3');
+        }
+    }
+    
     var medal = '';
     if (rank === 1) {
-        medal = '<span class="medal gold"></span>';
+        medal = '<span class="top-rank-icon">🥇</span>'; // استخدام أيقونة بدلاً من span فارغ
     } else if (rank === 2) {
-        medal = '<span class="medal silver"></span>';
+        medal = '<span class="top-rank-icon">🥈</span>';
     } else if (rank === 3) {
-        medal = '<span class="medal bronze"></span>';
+        medal = '<span class="top-rank-icon">🥉</span>';
     }
     
     var isSelected = selectedStudents.has(student.id);
@@ -378,6 +390,7 @@ function attachRowEvents() {
     list.addEventListener('change', function(e) {
         if (e.target.classList.contains('select-checkbox')) {
             var studentId = parseInt(e.target.dataset.id);
+            
             if (e.target.checked) {
                 selectedStudents.add(studentId);
             } else {
@@ -411,20 +424,55 @@ function updateSelectAllState() {
     const selectAll = document.getElementById('selectAllCheckbox');
     const checkboxes = document.querySelectorAll('.select-checkbox');
     
+    if (checkboxes.length === 0) {
+        selectAll.checked = false;
+        selectAll.indeterminate = false;
+        return;
+    }
+
+    // حساب عدد الطلاب المحددين
+    const checkedCount = selectedStudents.size;
+    
+    // تحديث حالة selectAll
+    if (checkedCount === 0) {
+        selectAll.checked = false;
+        selectAll.indeterminate = false;
+    } else if (checkedCount === checkboxes.length) {
+        selectAll.checked = true;
+        selectAll.indeterminate = false;
+    } else {
+        selectAll.checked = false;
+        selectAll.indeterminate = true;
+    }
+
     // تحديث جميع الـ checkboxes
     checkboxes.forEach(checkbox => {
         const studentId = parseInt(checkbox.dataset.id);
         checkbox.checked = selectedStudents.has(studentId);
     });
+}
+
+// دالة تبديل تحديد الكل
+function toggleSelectAll(event) {
+    const checkboxes = document.querySelectorAll('.select-checkbox');
+    const selectAll = event.target;
     
     // تحديث حالة selectAll
-    if (checkboxes.length === 0) {
-        selectAll.checked = false;
-        selectAll.indeterminate = false;
+    selectAll.checked = event.target.checked;
+    selectAll.indeterminate = false;
+
+    // تحديث مجموعة الطلاب المحددين
+    if (event.target.checked) {
+        checkboxes.forEach(checkbox => {
+            const studentId = parseInt(checkbox.dataset.id);
+            selectedStudents.add(studentId);
+            checkbox.checked = true;
+        });
     } else {
-        const checkedCount = selectedStudents.size;
-        selectAll.checked = checkedCount === checkboxes.length;
-        selectAll.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
+        selectedStudents.clear();
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
     }
 }
 
@@ -800,21 +848,6 @@ function updateDate() {
         // محاولة تحديث التاريخ مرة أخرى بعد ثانية
         setTimeout(updateDate, 1000);
     }
-}
-
-// دالة تبديل تحديد الكل
-function toggleSelectAll(event) {
-    const checkboxes = document.querySelectorAll('.select-checkbox');
-    for (let i = 0; i < checkboxes.length; i++) {
-        checkboxes[i].checked = event.target.checked;
-        const studentId = parseInt(checkboxes[i].dataset.id);
-        if (event.target.checked) {
-            selectedStudents.add(studentId);
-        } else {
-            selectedStudents.delete(studentId);
-        }
-    }
-    updateSelectAllState();
 }
 
 // دالة عرض سجل الطالب

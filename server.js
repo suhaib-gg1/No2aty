@@ -18,9 +18,17 @@ app.get(['/admin.html', '/student.html'], (req, res) => {
 });
 
 // Access codes
-const ACCESS_CODES = {
-  admin: "RtAdmin2025!",
-  student: "Tamayoz2025"
+const VALID_ACCOUNTS = {
+    admin: {
+        username: "admin",
+        password: "Admin@2025#Secure",
+        role: "admin"
+    },
+    student: {
+        username: "student",
+        password: "Tamayoz@2025#Secure",
+        role: "student"
+    }
 };
 
 // In-memory data
@@ -29,21 +37,28 @@ let studentsData = {
   lastUpdate: new Date()
 };
 
-// Route: Check access code
-app.post("/check-code", (req, res) => {
-  const { code } = req.body;
-  let isValid = false;
-  let redirectPage = "";
+// Route: Check credentials
+app.post("/check-credentials", (req, res) => {
+    const { username, password } = req.body;
+    let isValid = false;
+    let redirectPage = "";
+    let role = "";
 
-  if (code === ACCESS_CODES.admin) {
-    isValid = true;
-    redirectPage = "admin.html";
-  } else if (code === ACCESS_CODES.student) {
-    isValid = true;
-    redirectPage = "student.html";
-  }
+    // التحقق من صحة بيانات الدخول
+    for (const account of Object.values(VALID_ACCOUNTS)) {
+        if (account.username === username && account.password === password) {
+            isValid = true;
+            role = account.role;
+            redirectPage = `${account.role}.html`;
+            break;
+        }
+    }
 
-  res.json({ success: isValid, page: redirectPage });
+    res.json({ 
+        success: isValid, 
+        page: redirectPage,
+        role: role 
+    });
 });
 
 // Socket.io

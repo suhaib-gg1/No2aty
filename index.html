@@ -17,15 +17,20 @@
             box-shadow: 0 0 15px rgba(0,0,0,0.1);
         }
 
-        .code-input {
+        .input-field {
             width: 100%;
             padding: 15px;
             font-size: 18px;
             border: 2px solid #ddd;
             border-radius: 8px;
-            text-align: center;
+            text-align: right;
             margin-bottom: 15px;
             box-sizing: border-box;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #4CAF50;
         }
 
         .submit-btn {
@@ -135,20 +140,27 @@
     </nav>
 
     <div class="container">
-        <h1>الدخول باستخدام الرمز السري</h1>
+        <h1>تسجيل الدخول</h1>
         
         <div class="code-container">
             <input type="text" 
-                   class="code-input" 
-                   placeholder="أدخل الرمز (مثال: StuD12)"
-                   id="accessCode"
+                   class="input-field" 
+                   placeholder="اسم المستخدم"
+                   id="username"
                    maxlength="50"
                    oninput="validateInput(this)">
             
-            <button class="submit-btn" onclick="checkCode()">الدخول</button>
+            <input type="password" 
+                   class="input-field" 
+                   placeholder="كلمة المرور"
+                   id="password"
+                   maxlength="50"
+                   oninput="validateInput(this)">
+            
+            <button class="submit-btn" onclick="checkCredentials()">دخول</button>
             
             <div class="error-msg" id="errorMsg">
-                الرمز غير صحيح، يرجى المحاولة مرة أخرى
+                اسم المستخدم أو كلمة المرور غير صحيحة
             </div>
         </div>
     </div>
@@ -160,38 +172,46 @@
     </footer>
 
     <script>
-        async function checkCode() {
-            const enteredCode = document.getElementById('accessCode').value;
+        async function checkCredentials() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
             const errorMsg = document.getElementById('errorMsg');
 
-            const response = await fetch("/check-code", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ code: enteredCode })
-            });
+            try {
+                const response = await fetch("/check-credentials", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ username, password })
+                });
 
-            const result = await response.json();
+                const result = await response.json();
 
-            if (result.success) {
-                // خزّن الرمز في localStorage
-                localStorage.setItem('access_code', enteredCode);
-                window.location.href = result.page;
-            } else {
-                errorMsg.textContent = "الرمز غير صحيح، يرجى المحاولة مرة أخرى";
+                if (result.success) {
+                    // تخزين نوع المستخدم في localStorage
+                    localStorage.setItem('user_type', result.role);
+                    // توجيه المستخدم إلى الصفحة المناسبة
+                    window.location.href = result.page;
+                } else {
+                    errorMsg.textContent = "اسم المستخدم أو كلمة المرور غير صحيحة";
+                    errorMsg.style.display = "block";
+                }
+            } catch (error) {
+                errorMsg.textContent = "حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى";
                 errorMsg.style.display = "block";
+                console.error("Login error:", error);
             }
         }
 
         function validateInput(input) {
-    // يسمح بالأحرف العربية والإنجليزية والأرقام وبعض الرموز الشائعة
-    input.value = input.value.replace(/[^\u0600-\u06FFa-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~` ]/g, '');
-    document.getElementById('errorMsg').style.display = 'none';
-}
+            // يسمح بالأحرف العربية والإنجليزية والأرقام وبعض الرموز الشائعة
+            input.value = input.value.replace(/[^\u0600-\u06FFa-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~` ]/g, '');
+            document.getElementById('errorMsg').style.display = 'none';
+        }
 
-        document.getElementById('accessCode').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') checkCode();
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkCredentials();
         });
 
         function updateDate() {

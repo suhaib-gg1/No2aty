@@ -148,9 +148,14 @@ function setupEventListeners() {
     });
 
     // خيارات النقاط الجماعية
-    document.getElementById('bulkApplyTo').addEventListener('change', function() {
-        document.getElementById('bulkClassSelection').style.display = this.value === 'class' ? 'block' : 'none';
-    });
+    const bulkApplyToSelect = document.getElementById('bulkApplyTo');
+    const bulkClassSelection = document.getElementById('bulkClassSelection');
+    
+    if (bulkApplyToSelect && bulkClassSelection) {
+        bulkApplyToSelect.addEventListener('change', function() {
+            bulkClassSelection.style.display = this.value === 'class' ? 'block' : 'none';
+        });
+    }
 
     // أزرار إغلاق النوافذ المنبثقة
     document.querySelectorAll('.close-btn, .cancel-btn').forEach(function(btn) {
@@ -523,27 +528,6 @@ function confirmDelete() {
 function handleBulkPoints(e) {
     e.preventDefault();
 
-    // إظهار نافذة النقاط الجماعية
-    openModal('bulkPointsModal');
-
-    // اجعل الخيار الافتراضي لقائمة "تطبيق على" هو 'class' عند كل فتح للنافذة
-    const bulkApplyToSelector = document.getElementById('bulkApplyTo');
-    if (bulkApplyToSelector) {
-        // جلب آخر خيار محفوظ من localStorage
-        const lastBulkApplyTo = localStorage.getItem('lastBulkApplyTo') || 'class';
-        bulkApplyToSelector.value = lastBulkApplyTo;
-        // تفعيل ظهور قائمة الفصول مباشرة إذا كان الخيار 'class'
-        const bulkClassSelection = document.getElementById('bulkClassSelection');
-        if (bulkClassSelection) {
-            bulkClassSelection.style.display = bulkApplyToSelector.value === 'class' ? 'block' : 'none';
-        }
-        // إذا كان هناك دالة لتغيير العرض بناءً على الخيار، استدعها
-        if (typeof toggleBulkClassSelection === 'function') {
-            toggleBulkClassSelection();
-        }
-    }
-
-
     const points = parseInt(document.getElementById('bulkPointsAmount').value);
     const operation = document.getElementById('bulkOperationType').value;
     const applyTo = document.getElementById('bulkApplyTo').value;
@@ -630,21 +614,21 @@ function handleImport(e) {
         const jsonData = XLSX.utils.sheet_to_json(sheet);
 
         const classSelect = document.getElementById('importClass');
-const importedStudents = jsonData.map(function(row) {
-    let studentClass = '';
-    if (classSelect.value === 'custom') {
-        studentClass = row['الفصل'] || row['class'] || '';
-    } else {
-        studentClass = classSelect.value;
-    }
-    return {
-        id: nextId++,
-        name: row['اسم الطالب'] || 'طالب جديد',
-        class: studentClass,
-        points: row['النقاط'] || 0,
-        history: []
-    };
-});
+        const importedStudents = jsonData.map(function(row) {
+            let studentClass = '';
+            if (classSelect.value === 'custom') {
+                studentClass = row['الفصل'] || row['class'] || '';
+            } else {
+                studentClass = classSelect.value;
+            }
+            return {
+                id: nextId++,
+                name: row['اسم الطالب'] || 'طالب جديد',
+                class: studentClass,
+                points: row['النقاط'] || 0,
+                history: []
+            };
+        });
 
         if (document.getElementById('importMethod').value === 'replace') {
             students = importedStudents;
@@ -654,6 +638,18 @@ const importedStudents = jsonData.map(function(row) {
 
         // إرسال التحديث للخادم
         saveChangesToServer(students);
+
+        // مسح الملف وإخفاء معلوماته
+        const fileInput = document.getElementById('excelFile');
+        const fileNameElement = document.getElementById('fileName');
+        const clearButton = document.getElementById('clearFile');
+        
+        fileInput.value = '';
+        fileNameElement.textContent = 'لم يتم اختيار ملف';
+        clearButton.style.display = 'none';
+        
+        // إعادة تعيين نموذج الاستيراد
+        document.getElementById('importForm').reset();
 
         closeModal('importModal');
         displayStudents();

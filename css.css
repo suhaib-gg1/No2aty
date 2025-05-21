@@ -1213,7 +1213,7 @@ tr.top4-10:hover {
     --text-secondary: #bbbbbb;
     --border-color: #333333;
     --accent-color: #bb86fc;
-    --hover-color: #3700b3;
+    --hover-color: #00b368;
     --card-bg: #1e1e1e;
     --table-header-bg: #2c2c2c;
     --table-row-hover: #2a2a2a;
@@ -1781,11 +1781,6 @@ tr.top4-10,
     }
 
     /* Adjust mobile menu position for smaller screens if needed */
-    .mobile-menu {
-        /* Example adjustment for smaller screens if default positioning isn't ideal */
-        /* right: 10px; */
-        /* top: 50px; */
-    }
 }
 
 /* Mobile menu styles */

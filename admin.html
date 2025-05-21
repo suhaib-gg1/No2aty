@@ -5,8 +5,16 @@
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نقاطي - مدرسة ريادة التميز</title>
-   <link rel="stylesheet" href="css.css">
-        <link rel="icon" href="n.icon">
+    <!-- إضافة سكريبت تحميل الوضع قبل تحميل المحتوى -->
+    <script>
+        // تحميل الوضع المحفوظ قبل تحميل المحتوى
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <link rel="stylesheet" href="css.css">
+    <link rel="icon" href="n.icon">
 </head>
 <body>
     <nav class="navbar">
@@ -74,7 +82,7 @@
         <table id="studentsTable">
             <thead>
                 <tr>
-                    <th width="5%"><input type="checkbox" id="selectAllCheckbox"></th>
+                    <th width="5%"><input type="checkbox" id="selectAllCheckbox" class="select-checkbox"></th>
                     <th width="5%">الترتيب</th>
                     <th width="15%">اسم الطالب</th>
                     <th width="15%">إدارة النقاط</th> <!-- العمود الجديد -->
@@ -734,18 +742,77 @@
         font-size: 0.9em;
     }
 }
+
+/* أنماط التشك بوكس المخصصة */
+.select-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #4CAF50;
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.select-checkbox:checked {
+    background-color: #4CAF50;
+    border-color: #4CAF50;
+}
+
+.select-checkbox:checked::after {
+    content: '✓';
+    position: absolute;
+    color: white;
+    font-size: 14px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.select-checkbox:hover {
+    border-color: #45a049;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+}
+
+/* أنماط الوضع الليلي للتشك بوكس */
+[data-theme="dark"] .select-checkbox {
+    background-color: #2c2c2c;
+    border-color: #4CAF50;
+}
+
+[data-theme="dark"] .select-checkbox:checked {
+    background-color: #4CAF50;
+    border-color: #4CAF50;
+}
+
+[data-theme="dark"] .select-checkbox:hover {
+    border-color: #45a049;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+}
 </style>
 
 <!-- السكريبت -->
 <script>
 function openModal(modalId) {
     const modal = document.getElementById(modalId);
-    modal.classList.add('active');
+    if (modal) {
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+    }
 }
 
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
-    modal.classList.remove('active');
+    if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+        if (modalId === 'actionModal') {
+            currentStudentId = null;
+        }
+    }
 }
 
 function confirmLogout() {
@@ -813,40 +880,23 @@ function handleActionButton(action) {
     switch(action) {
         case 'edit':
             editStudent(currentStudentId);
+            closeModal('actionModal');
             break;
         case 'history':
             showHistory(currentStudentId);
+            closeModal('actionModal');
             break;
         case 'delete':
             deleteSingleStudent(currentStudentId);
+            closeModal('actionModal');
             break;
     }
-    closeModal('actionModal');
 }
 
 // تحديث دالة فتح نافذة الإجراءات
 function openActionModal() {
     if (!currentStudentId) return;
     openModal('actionModal');
-}
-
-// تحديث دالة إغلاق النوافذ
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.remove('active');
-        if (modalId === 'actionModal') {
-            currentStudentId = null;
-        }
-    }
-}
-
-// تحديث دالة فتح النوافذ
-function openModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.add('active');
-    }
 }
 
 // دالة استيراد الطلاب من إكسل
@@ -1063,12 +1113,9 @@ function toggleTheme() {
     themeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
 }
 
-// تحميل الوضع المحفوظ عند تحميل الصفحة
+// تحديث أيقونة الزر عند تحميل الصفحة
 document.addEventListener('DOMContentLoaded', () => {
     const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    
-    // تحديث أيقونة الزر
     const themeIcon = document.querySelector('.theme-toggle i');
     themeIcon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
 });
@@ -1095,6 +1142,7 @@ function openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
         modal.classList.add('active');
+        modal.style.display = 'flex';
     }
 }
 
@@ -1102,9 +1150,9 @@ function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
         modal.classList.remove('active');
-        // Optional: Reset action modal state
+        modal.style.display = 'none';
         if (modalId === 'actionModal') {
-            // currentStudentId = null; // if used in this file
+            currentStudentId = null;
         }
     }
 }

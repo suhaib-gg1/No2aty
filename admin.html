@@ -82,7 +82,7 @@
                     <button class="action-btn bulk-btn" id="bulkPointsBtn">
                         <i>±</i> نقاط جماعية
                     </button>
-                    <button class="action-btn delete-selected-btn" id="deleteSelectedBtn">
+                    <button class="action-btn delete-selected-btn" id="deleteSelectedBtn" onclick="handleDeleteSelectedClick()">
                         <i>🗑️</i> حذف المحدد
                     </button>
                 </div>
@@ -135,7 +135,7 @@
                     <button class="action-btn bulk-btn" id="mutamayez-bulkPointsBtn">
                         <i>±</i> نقاط جماعية
                     </button>
-                    <button class="action-btn delete-selected-btn" id="mutamayez-deleteSelectedBtn">
+                    <button class="action-btn delete-selected-btn" id="mutamayez-deleteSelectedBtn" onclick="handleDeleteSelectedClick()">
                         <i>🗑️</i> حذف المحدد
                     </button>
                 </div>
@@ -266,8 +266,16 @@
 
                     <div class="form-group">
                         <label for="importClass">الفصل:</label>
-                        <select id="importClass" required>
-                        </select>
+                        <div class="class-selection-group">
+                            <select id="importClass" required>
+                            </select>
+                            <button type="button" id="useExcelClassBtn" class="excel-class-btn" title="استخدام الفصل من ملف الإكسل">
+                                📊
+                            </button>
+                        </div>
+                        <small class="excel-class-hint" style="display: none; color: #666; margin-top: 5px;">
+                            سيتم استخدام الفصل من عمود "الفصل" في ملف الإكسل
+                        </small>
                     </div>
                     
                     <div class="form-group">
@@ -864,6 +872,44 @@
     border-color: #d24be4;
     box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
 }
+
+.class-selection-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.excel-class-btn {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.excel-class-btn:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+}
+
+.excel-class-btn.active {
+    background: #2196F3;
+}
+
+[data-theme="dark"] .excel-class-btn {
+    background: #2ecc71;
+}
+
+[data-theme="dark"] .excel-class-btn:hover {
+    background: #27ae60;
+}
+
+[data-theme="dark"] .excel-class-btn.active {
+    background: #3498db;
+}
 </style>
 
 <!-- السكريبت -->
@@ -922,28 +968,6 @@ function clearFileSelection() {
     fileInput.value = '';
     fileNameElement.textContent = 'لم يتم اختيار ملف';
     clearButton.style.display = 'none';
-}
-
-function deleteSelectedStudents() {
-    if (selectedStudents.size === 0) {
-        showAlert('الرجاء تحديد طالب واحد على الأقل', 'warning');
-        return;
-    }
-    openModal('deleteConfirmation');
-}
-
-function confirmDelete() {
-    students = students.filter(function(student) {
-        return !selectedStudents.has(student.id);
-    });
-    
-    // إرسال التحديث للخادم
-    saveChangesToServer(students);
-    
-    selectedStudents.clear();
-    closeModal('deleteConfirmation');
-    displayStudents();
-    showAlert('تم حذف الطلاب المحددين بنجاح', 'success');
 }
 
 // إضافة دالة معالجة أزرار الإجراءات

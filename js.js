@@ -286,6 +286,7 @@ function setupTabSpecificEventListeners() {
      if (elements.stageFilter) { elements.stageFilter.removeEventListener('change', handleStageFilterChange); elements.stageFilter.addEventListener('change', handleStageFilterChange); }
     // فلتر الفصل يحتاج لاستدعاء updateClassFilter أولاً ثم displayStudents
      if (elements.classFilter) { elements.classFilter.removeEventListener('change', displayStudents); elements.classFilter.addEventListener('change', displayStudents); }
+    // فلتر الفصل يحتاج لاستدعاء updateClassFilter أولاً ثم displayStudents
      if (elements.selectAllCheckbox) { elements.selectAllCheckbox.removeEventListener('change', handleSelectAllChange); elements.selectAllCheckbox.addEventListener('change', handleSelectAllChange); }
 
     // إعداد عناصر التحكم في النقاط (يتم داخل displayStudents)
@@ -333,9 +334,70 @@ function handleBulkPointsClick() {
     toggleBulkClassSelection(); // للتأكد من ظهور/إخفاء فلتر الفصل بشكل صحيح
 }
 
+// دالة معالجة حذف الطلاب المحددين (محدثة)
 function handleDeleteSelectedClick() {
-    // تأكيد وحذف الطلاب المحددين في التبويب النشط
-    deleteSelectedStudents();
+    console.log('بدء عملية حذف الطلاب المحددين');
+    console.log('الطلاب المحددون حالياً:', Array.from(selectedStudents));
+    
+    // التحقق من وجود طلاب محددين في التبويب النشط
+    const studentsToDelete = students.filter(student => 
+        selectedStudents.has(student.id) && student.category === activeTab
+    );
+    
+    console.log('عدد الطلاب المراد حذفهم:', studentsToDelete.length);
+    
+    if (studentsToDelete.length === 0) {
+        showAlert('الرجاء تحديد طالب واحد على الأقل للحذف', 'warning');
+        return;
+    }
+    
+    // فتح نافذة تأكيد الحذف
+    openModal('deleteConfirmation');
+}
+
+// دالة تأكيد الحذف (محدثة)
+function confirmDelete() {
+    console.log('تأكيد حذف الطلاب المحددين');
+    console.log('الطلاب المحددون قبل الحذف:', Array.from(selectedStudents));
+    
+    // التحقق مرة أخرى من وجود طلاب محددين في التبويب النشط
+    const studentsToDelete = students.filter(student => 
+        selectedStudents.has(student.id) && student.category === activeTab
+    );
+    
+    if (studentsToDelete.length === 0) {
+        showAlert('لم يتم تحديد أي طلاب للحذف', 'warning');
+        closeModal('deleteConfirmation');
+        return;
+    }
+
+    // حفظ عدد الطلاب قبل الحذف
+    const initialLength = students.length;
+    
+    // حذف الطلاب المحددين من المصفوفة الرئيسية
+    students = students.filter(student => 
+        !(selectedStudents.has(student.id) && student.category === activeTab)
+    );
+    
+    const deletedCount = initialLength - students.length;
+    
+    console.log('تم حذف', deletedCount, 'طالب');
+    
+    // إرسال التحديث للخادم
+    saveChangesToServer(students);
+    
+    // مسح التحديدات وإغلاق النافذة
+    selectedStudents.clear();
+    closeModal('deleteConfirmation');
+    
+    // تحديث العرض
+    displayStudents();
+    
+    // تحديث حالة تحديد الكل
+    updateSelectAllState();
+    
+    // عرض رسالة نجاح
+    showAlert(`تم حذف ${deletedCount} طالب بنجاح`, 'success');
 }
 
 // دالة مساعدة لتحديث فلتر المرحلة واستدعاء displayStudents
@@ -436,27 +498,27 @@ function displayStudents() {
     // هذا يتم بالفعل في handleStageFilterChange
 }
 
-// دالة إنشاء صف للطالب (معدلة قليلاً لتمرير activeTab)
+// دالة إنشاء صف للطالب (معدلة لتحسين التعامل مع تحديد الطلاب)
 function createStudentRow(student, rank, tabCategory) {
     var row = document.createElement('tr');
     row.setAttribute('data-id', student.id);
-    row.setAttribute('data-category', student.category); // إضافة فئة الطالب للتحقق السريع
+    row.setAttribute('data-category', student.category);
     
-    // إضافة فئات التنسيق بناءً على الترتيب (الترتيب المعروض)
-     if (rank !== 'N/A' && rank >= 1 && rank <= 10) {
+    // إضافة فئات التنسيق بناءً على الترتيب
+    if (rank !== 'N/A' && rank >= 1 && rank <= 10) {
         row.classList.add('top-10-row');
         if (rank === 1) { row.classList.add('rank-1'); }
         else if (rank === 2) { row.classList.add('rank-2'); }
         else if (rank === 3) { row.classList.add('rank-3'); }
     }
     
-    // إضافة أيقونات الميداليات بناءً على الترتيب المعروض
+    // إضافة أيقونات الميداليات
     var medal = '';
     if (rank === 1) { medal = '<span class="top-rank-icon">🥇</span>'; }
     else if (rank === 2) { medal = '<span class="top-rank-icon">🥈</span>'; }
     else if (rank === 3) { medal = '<span class="top-rank-icon">🥉</span>'; }
     
-    // التحقق مما إذا كان الطالب محدداً في المجموعة العامة selectedStudents
+    // التحقق من حالة تحديد الطالب
     var isSelected = selectedStudents.has(student.id);
     
     row.innerHTML = `
@@ -476,6 +538,20 @@ function createStudentRow(student, rank, tabCategory) {
             <button class="mobile-menu-btn">⋮</button>
         </td>
     `;
+
+    // إضافة مستمع حدث للتشك بوكس مباشرة عند إنشاء الصف
+    const checkbox = row.querySelector('.select-checkbox');
+    checkbox.addEventListener('change', function(e) {
+        const studentId = parseInt(this.dataset.id);
+        if (this.checked) {
+            selectedStudents.add(studentId);
+        } else {
+            selectedStudents.delete(studentId);
+        }
+        updateSelectAllState();
+        console.log('تم تحديث تحديد الطالب:', studentId, 'الحالة:', this.checked);
+        console.log('الطلاب المحددون حالياً:', Array.from(selectedStudents));
+    });
     
     return row;
 }
@@ -554,11 +630,13 @@ function updateStudentPoints(studentId, change, reason) {
     showAlert(`تم تطبيق ${change > 0 ? 'إضافة' : 'خصم'} ${Math.abs(change)} نقطة على الطالب ${student.name}`, 'success');
 }
 
-// دالة إرفاق أحداث الصفوف (تأخذ tbody كمعامل)
+// دالة إرفاق أحداث الصفوف (محدثة)
 function attachRowEvents(tbodyElement) {
-     if (!tbodyElement) return;
-     // إزالة أي مستمعين سابقين للنقر على الصفوف داخل tbody المحدد
+    if (!tbodyElement) return;
+    
+    // إزالة أي مستمعين سابقين
     tbodyElement.removeEventListener('click', handleRowClick);
+    
     // إضافة مستمع جديد للنقر على الصفوف
     tbodyElement.addEventListener('click', handleRowClick);
 }
@@ -603,23 +681,22 @@ function updateSelectAllState() {
     if (checkboxes.length === 0) {
         selectAll.checked = false;
         selectAll.indeterminate = false;
-        // selectedStudents.clear(); // لا مسح هنا لتجنب فقدان التحديد في التبويبات الأخرى
         return;
     }
 
-    // حساب عدد الطلاب المحددين في القائمة *المعروضة حالياً* والذين هم أيضاً في selectedStudents
+    // حساب عدد الطلاب المحددين في القائمة المعروضة حالياً
     let checkedCount = 0;
-     checkboxes.forEach(checkbox => {
+    checkboxes.forEach(checkbox => {
         const studentId = parseInt(checkbox.dataset.id);
         if (selectedStudents.has(studentId)) {
-             checkedCount++;
-             checkbox.checked = true; // تأكيد أن checkbox محدد إذا كان في selectedStudents
+            checkedCount++;
+            checkbox.checked = true;
         } else {
-             checkbox.checked = false; // تأكيد أن checkbox غير محدد إذا لم يكن في selectedStudents
+            checkbox.checked = false;
         }
     });
 
-    // تحديث حالة selectAll بناءً على الـ checkboxes *المعروضة*
+    // تحديث حالة selectAll بناءً على الـ checkboxes المعروضة
     if (checkedCount === 0) {
         selectAll.checked = false;
         selectAll.indeterminate = false;
@@ -632,26 +709,146 @@ function updateSelectAllState() {
     }
 }
 
-// دالة تبديل تحديد الكل (عامة، تعمل على التبويب النشط)
-function toggleSelectAll(event) {
-     const elements = getElementsForActiveTab();
-     if (!elements || !elements.selectAllCheckbox || !elements.studentsList) return;
+// دالة معالجة تغيير تحديد الكل (محدثة)
+function handleSelectAllChange(event) {
+    const elements = getElementsForActiveTab();
+    if (!elements || !elements.selectAllCheckbox || !elements.studentsList) return;
 
-    const selectAll = elements.selectAllCheckbox;
     const isChecked = event.target.checked;
     const checkboxes = elements.studentsList.querySelectorAll('.select-checkbox');
     
-    // قم بتحديث selectedStudents بناءً على حالة تحديد الكل للطلاب *المعروضين حالياً*
-        checkboxes.forEach(checkbox => {
-            const studentId = parseInt(checkbox.dataset.id);
+    console.log('تحديد الكل:', isChecked);
+    
+    checkboxes.forEach(checkbox => {
+        const studentId = parseInt(checkbox.dataset.id);
         checkbox.checked = isChecked;
         if (isChecked) {
             selectedStudents.add(studentId);
-    } else {
+        } else {
             selectedStudents.delete(studentId);
         }
+    });
+    
+    console.log('الطلاب المحددون بعد تحديد الكل:', Array.from(selectedStudents));
+}
+
+// دالة معالجة النقاط الجماعية (محدثة)
+function handleBulkPoints(e) {
+    e.preventDefault();
+    console.log('بدء معالجة النقاط الجماعية');
+    console.log('الطلاب المحددون حالياً:', Array.from(selectedStudents));
+    
+    const pointsAmount = parseInt(document.getElementById('bulkPointsAmount').value);
+    const operationType = document.getElementById('bulkOperationType').value;
+    const applyTo = document.getElementById('bulkApplyTo').value;
+    const selectedDate = document.getElementById('bulkDate').value;
+    const selectedStage = document.getElementById('bulkStage').value;
+    const selectedClass = document.getElementById('bulkClass').value;
+    
+    if (isNaN(pointsAmount) || pointsAmount <= 0) {
+        showAlert('الرجاء إدخال عدد نقاط صحيح', 'warning');
+        return;
+    }
+    
+    const change = operationType === 'add' ? pointsAmount : -pointsAmount;
+    const reason = `نقاط جماعية (${operationType === 'add' ? 'إضافة' : 'خصم'})`;
+    let updatedCount = 0;
+    
+    // تحديد الطلاب الذين سيتم تطبيق النقاط عليهم
+    let targetStudents = [];
+    if (applyTo === 'selected') {
+        console.log('تطبيق على الطلاب المحددين');
+        console.log('عدد الطلاب المحددين:', selectedStudents.size);
+        
+        if (selectedStudents.size === 0) {
+            showAlert('الرجاء تحديد طالب واحد على الأقل', 'warning');
+            return;
+        }
+        
+        targetStudents = students.filter(student => 
+            selectedStudents.has(student.id) && student.category === activeTab
+        );
+        
+        console.log('الطلاب المستهدفون:', targetStudents.length);
+    } else if (applyTo === 'class') {
+        if (!selectedClass) {
+            showAlert('الرجاء اختيار الفصل', 'warning');
+            return;
+        }
+        targetStudents = students.filter(student => 
+            student.category === activeTab && 
+            student.stage === selectedStage && 
+            student.class === selectedClass
+        );
+    } else { // applyTo === 'all'
+        targetStudents = students.filter(student => student.category === activeTab);
+    }
+    
+    if (targetStudents.length === 0) {
+        showAlert('لا يوجد طلاب لتطبيق النقاط عليهم', 'warning');
+        return;
+    }
+    
+    // تطبيق النقاط على الطلاب المحددين
+    targetStudents.forEach(student => {
+        const oldPoints = student.points;
+        const newPoints = Math.max(0, oldPoints + change);
+        
+        if (!student.history) {
+            student.history = [];
+        }
+        
+        student.history.push({
+            date: selectedDate,
+            oldPoints: oldPoints,
+            change: change,
+            newPoints: newPoints,
+            reason: reason,
+            type: change > 0 ? 'إضافة نقاط' : 'خصم نقاط'
         });
-    // updateSelectAllState(); // لا نحتاج لاستدعائها هنا
+        
+        student.points = newPoints;
+        updatedCount++;
+    });
+    
+    // إرسال التحديث للخادم
+    saveChangesToServer(students);
+    
+    // إغلاق النافذة وتحديث العرض
+    closeModal('bulkPointsModal');
+    displayStudents();
+    
+    // عرض رسالة نجاح
+    showAlert(`تم تطبيق النقاط على ${updatedCount} طالب بنجاح`, 'success');
+}
+
+
+
+// دالة تأكيد الحذف
+function confirmDelete() {
+    if (selectedStudents.size === 0) {
+        showAlert('لم يتم تحديد أي طلاب للحذف', 'warning');
+        closeModal('deleteConfirmation');
+        return;
+    }
+    
+    // حذف الطلاب المحددين من المصفوفة الرئيسية
+    const initialLength = students.length;
+    students = students.filter(student => !selectedStudents.has(student.id));
+    const deletedCount = initialLength - students.length;
+    
+    // إرسال التحديث للخادم
+    saveChangesToServer(students);
+    
+    // مسح التحديدات وإغلاق النافذة
+    selectedStudents.clear();
+    closeModal('deleteConfirmation');
+    
+    // تحديث العرض
+    displayStudents();
+    
+    // عرض رسالة نجاح
+    showAlert(`تم حذف ${deletedCount} طالب بنجاح`, 'success');
 }
 
 // دالة معالجة إضافة/تعديل طالب (معدلة لإضافة الفئة)
@@ -762,159 +959,23 @@ function handleStudentSubmit(e) {
     showAlert(id ? 'تم تعديل بيانات الطالب بنجاح' : 'تم إضافة الطالب بنجاح', 'success');
 }
 
-// دالة حذف الطلاب المحددين (معدلة للعمل على المجموعة المحددة بغض النظر عن التبويب)
-function deleteSelectedStudents() {
-    if (selectedStudents.size === 0) {
-        showAlert('الرجاء تحديد طالب واحد على الأقل', 'warning');
-        return;
-    }
-    // نفتح نافذة التأكيد أولاً
-    openModal('deleteConfirmation');
-}
-
-// دالة تأكيد الحذف (تنفذ الحذف بعد تأكيد المستخدم)
-function confirmDelete() {
-    // نحذف الطلاب من القائمة الرئيسية students
-    students = students.filter(function(student) {
-        return !selectedStudents.has(student.id);
-    });
-    
-    // إرسال التحديث للخادم
-    saveChangesToServer(students);
-    
-    selectedStudents.clear(); // مسح التحديدات بعد الحذف
-    closeModal('deleteConfirmation');
-    displayStudents(); // إعادة عرض الطلاب في التبويب النشط
-    showAlert('تم حذف الطلاب المحددين بنجاح', 'success');
-}
-
-// دالة معالجة النقاط الجماعية (تحتاج لتعديل لتأخذ في الاعتبار التبويب النشط)
-function handleBulkPoints(e) {
-    e.preventDefault();
-    console.log('بدء معالجة النقاط الجماعية للتبويب:', activeTab);
-
-    const points = parseInt(document.getElementById('bulkPointsAmount').value);
-    const operation = document.getElementById('bulkOperationType').value;
-    const applyTo = document.getElementById('bulkApplyTo').value;
-    const selectedClass = document.getElementById('bulkClass').value;
-    const selectedStage = document.getElementById('bulkStage').value;
-    const date = document.getElementById('bulkDate').value;
-    const reason = document.getElementById('bulkReason')?.value || 'نقاط جماعية';
-
-    if (isNaN(points) || points <= 0) {
-        showAlert('الرجاء إدخال عدد نقاط صحيح وموجب', 'warning');
-        return;
-    }
-
-    if (!selectedStage) {
-        showAlert('الرجاء اختيار المرحلة', 'warning');
-        return;
-    }
-
-    let targets = [];
-
-    // تحديد مجموعة الطلاب المستهدفين بناءً على الخيار والفئة النشطة
-    const studentsInActiveTab = students.filter(student => student.category === activeTab);
-
-    if (applyTo === 'selected') {
-        // استهداف الطلاب المحددين حالياً والذين ينتمون أيضاً للتبويب النشط
-        targets = studentsInActiveTab.filter(function(student) {
-            return selectedStudents.has(student.id);
-        });
-        if (targets.length !== selectedStudents.size) {
-            console.warn('بعض الطلاب المحددين لا ينتمون للتبويب النشط!');
-        }
-    } else if (applyTo === 'class') {
-        // استهداف طلاب فصل معين داخل التبويب النشط
-        targets = studentsInActiveTab.filter(function(student) {
-            return student.class === selectedClass && student.stage === selectedStage;
-        });
-    } else { // applyTo === 'all'
-        // استهداف جميع الطلاب في التبويب النشط والمرحلة المختارة فقط
-        targets = studentsInActiveTab.filter(function(student) {
-            return student.stage === selectedStage;
-        });
-    }
-
-    if (targets.length === 0) {
-        const stageName = stageClasses[selectedStage]?.name || selectedStage;
-        if (applyTo === 'all') {
-            showAlert(`لا يوجد طلاب في المرحلة ${stageName} في تبويب ${activeTab}`, 'warning');
-        } else if (applyTo === 'class') {
-            showAlert(`لا يوجد طلاب في الفصل ${selectedClass} في المرحلة ${stageName} في تبويب ${activeTab}`, 'warning');
-        } else {
-            showAlert('لا يوجد طلاب مستهدفون لتطبيق النقاط عليهم في هذا التبويب والفلاتر المختارة.', 'warning');
-        }
-        return;
-    }
-
-    const change = operation === 'add' ? points : -points;
-    const stageName = stageClasses[selectedStage]?.name || selectedStage;
-
-    targets.forEach(function(student) {
-        if (!student.history) { student.history = []; }
-        
-        const oldPoints = student.points;
-        const newPoints = Math.max(0, oldPoints + change);
-
-        // البحث عن سجل التعديل لليوم الحالي لنفس السبب والنوع
-        const today = new Date().toISOString().split('T')[0];
-        const existingRecordIndex = student.history.findIndex(record => 
-            record.date === today && record.reason === reason
-        );
-
-        if (existingRecordIndex > -1) {
-            // تحديث السجل الموجود
-            student.history[existingRecordIndex].oldPoints = oldPoints;
-            student.history[existingRecordIndex].change += change;
-            student.history[existingRecordIndex].newPoints = newPoints;
-        } else {
-            // إضافة سجل جديد
-            student.history.push({
-                date: date,
-                oldPoints: oldPoints,
-                change: change,
-                newPoints: newPoints,
-                reason: reason,
-                type: operation === 'add' ? 'إضافة نقاط' : 'خصم نقاط'
-            });
-        }
-        
-        student.points = newPoints;
-    });
-
-    // إرسال التحديث للخادم
-    saveChangesToServer(students);
-
-    closeModal('bulkPointsModal');
-    displayStudents();
-    
-    // تحديث رسالة النجاح لتشمل المرحلة والفصل
-    let successMessage = '';
-    if (applyTo === 'all') {
-        successMessage = `تم تطبيق ${operation === 'add' ? 'إضافة' : 'خصم'} ${points} نقطة على ${targets.length} طالب في المرحلة ${stageName} (تبويب ${activeTab})`;
-    } else if (applyTo === 'class') {
-        successMessage = `تم تطبيق ${operation === 'add' ? 'إضافة' : 'خصم'} ${points} نقطة على ${targets.length} طالب في الفصل ${selectedClass} في المرحلة ${stageName} (تبويب ${activeTab})`;
-    } else {
-        successMessage = `تم تطبيق ${operation === 'add' ? 'إضافة' : 'خصم'} ${points} نقطة على ${targets.length} طالب محدد (تبويب ${activeTab})`;
-    }
-    
-    showAlert(successMessage, 'success');
-    updateSelectAllState();
-}
-
-// دالة حذف طالب واحد (تستخدم deleteSelectedStudents)
+// دالة حذف طالب واحد (محدثة)
 function deleteSingleStudent(id) {
-     console.log('حذف طالب واحد:', id, 'من التبويب:', activeTab);
-     // نحتاج للتأكد أن الطالب ينتمي للتبويب النشط قبل حذفه إذا كنا نريد تقييد الحذف للتبويب النشط فقط
-     // أو نعتمد على أن selectedStudents ستكون قد تم تحديثها بالفعل لتعكس الطلاب المحددين في التبويب النشط
-
+    console.log('حذف طالب واحد:', id);
+    
+    // التحقق من وجود الطالب في التبويب النشط
+    const student = students.find(s => s.id === id && s.category === activeTab);
+    if (!student) {
+        console.log('لم يتم العثور على الطالب في التبويب النشط');
+        return;
+    }
+    
     // مسح التحديدات الحالية وإضافة الطالب المراد حذفه فقط
     selectedStudents.clear();
     selectedStudents.add(id);
     
-    // استدعاء دالة حذف الطلاب المحددين العامة
-    deleteSelectedStudents(); // هذه الدالة ستفتح نافذة التأكيد وتنفذ الحذف
+    // فتح نافذة تأكيد الحذف
+    openModal('deleteConfirmation');
 }
 
 // دالة تحديث قائمة الفصول حسب المرحلة المختارة (عامة للفلتر في صفحة المشرف)
@@ -1191,8 +1252,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // دالة التحكم في عرض محتوى التبويبات (لصفحة المشرف)
 function activateTab(tabName) {
-     console.log('تفعيل التبويب:', tabName);
+    console.log('تفعيل التبويب:', tabName);
     if (tabName === 'نقاطي' || tabName === 'انا متميز') {
+        // مسح مجموعة الطلاب المحددين عند تغيير التبويب
+        selectedStudents.clear();
+        console.log('تم مسح مجموعة الطلاب المحددين عند تغيير التبويب');
+        
         activeTab = tabName;
         updateTabUI(); // تحديث عرض التبويبات والأقسام
         displayStudents(); // عرض الطلاب للتبويب الجديد
@@ -1341,16 +1406,17 @@ function handleImport(e) {
     console.log('خيارات الاستيراد:', {
         stage: importStage,
         class: importClass,
-        method: importMethod
+        method: importMethod,
+        useExcelClass: useExcelClass
     });
 
-    if (!importStage || !importClass) {
-        showAlert('الرجاء اختيار المرحلة والفصل للاستيراد', 'warning');
+    if (!importStage) {
+        showAlert('الرجاء اختيار المرحلة للاستيراد', 'warning');
         return;
     }
 
-    if (!stageClasses[importStage] || !stageClasses[importStage].classes.includes(importClass)) {
-        showAlert('الفصل المختار للاستيراد لا ينتمي للمرحلة المحددة', 'warning');
+    if (!useExcelClass && !importClass) {
+        showAlert('الرجاء اختيار الفصل للاستيراد', 'warning');
         return;
     }
 
@@ -1373,15 +1439,24 @@ function handleImport(e) {
             const importedStudents = jsonData.map(function(row) {
                 const studentName = row['اسم الطالب'] || row['name'] || 'طالب مستورد';
                 const studentPoints = parseInt(row['النقاط'] || row['points'] || 0);
+                // استخدام الفصل من الإكسل إذا كان الخيار مفعل
+                const studentClass = useExcelClass ? 
+                    (row['الفصل'] || row['class'] || importClass) : 
+                    importClass;
 
                 if (!studentName || isNaN(studentPoints)) {
                     throw new Error(`بيانات غير صالحة في السطر: ${JSON.stringify(row)}`);
                 }
 
+                // التحقق من صحة الفصل إذا كان من الإكسل
+                if (useExcelClass && !stageClasses[importStage].classes.includes(studentClass)) {
+                    throw new Error(`الفصل "${studentClass}" غير صالح للمرحلة ${stageClasses[importStage].name}`);
+                }
+
                 return {
                     id: nextId++,
                     name: studentName,
-                    class: importClass,
+                    class: studentClass,
                     stage: importStage,
                     points: studentPoints,
                     category: activeTab,
@@ -1527,6 +1602,35 @@ function handleBulkPointsClick() {
     toggleBulkClassSelection(); // للتأكد من ظهور/إخفاء فلتر الفصل بشكل صحيح
 }
 
-function handleDeleteSelectedClick() {
-// ... existing code ...
-} 
+// متغير عام لتتبع حالة استخدام الفصل من الإكسل
+let useExcelClass = false;
+
+// دالة تبديل حالة استخدام الفصل من الإكسل
+function toggleExcelClass() {
+    const btn = document.getElementById('useExcelClassBtn');
+    const hint = document.querySelector('.excel-class-hint');
+    const classSelect = document.getElementById('importClass');
+    
+    useExcelClass = !useExcelClass;
+    
+    if (useExcelClass) {
+        btn.classList.add('active');
+        hint.style.display = 'block';
+        classSelect.disabled = true;
+        classSelect.style.opacity = '0.6';
+    } else {
+        btn.classList.remove('active');
+        hint.style.display = 'none';
+        classSelect.disabled = false;
+        classSelect.style.opacity = '1';
+    }
+}
+
+// إضافة مستمع الحدث لزر استخدام الفصل من الإكسل
+document.addEventListener('DOMContentLoaded', function() {
+    const useExcelClassBtn = document.getElementById('useExcelClassBtn');
+    if (useExcelClassBtn) {
+        useExcelClassBtn.addEventListener('click', toggleExcelClass);
+    }
+});
+

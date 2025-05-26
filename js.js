@@ -797,11 +797,17 @@ function handleBulkPoints(e) {
     const operation = document.getElementById('bulkOperationType').value;
     const applyTo = document.getElementById('bulkApplyTo').value;
     const selectedClass = document.getElementById('bulkClass').value;
+    const selectedStage = document.getElementById('bulkStage').value;
     const date = document.getElementById('bulkDate').value;
     const reason = document.getElementById('bulkReason')?.value || 'نقاط جماعية';
 
     if (isNaN(points) || points <= 0) {
         showAlert('الرجاء إدخال عدد نقاط صحيح وموجب', 'warning');
+        return;
+    }
+
+    if (!selectedStage) {
+        showAlert('الرجاء اختيار المرحلة', 'warning');
         return;
     }
 
@@ -811,30 +817,39 @@ function handleBulkPoints(e) {
     const studentsInActiveTab = students.filter(student => student.category === activeTab);
 
     if (applyTo === 'selected') {
-        // استهداف الطلاب المحددين حالياً والذين ينتمون أيضاً للتبويب النشط (للتأكيد)
+        // استهداف الطلاب المحددين حالياً والذين ينتمون أيضاً للتبويب النشط
         targets = studentsInActiveTab.filter(function(student) {
             return selectedStudents.has(student.id);
         });
-         if (targets.length !== selectedStudents.size) {
-             console.warn('بعض الطلاب المحددين لا ينتمون للتبويب النشط!');
-             // يمكن عرض رسالة تحذير هنا للمستخدم
-         }
+        if (targets.length !== selectedStudents.size) {
+            console.warn('بعض الطلاب المحددين لا ينتمون للتبويب النشط!');
+        }
     } else if (applyTo === 'class') {
         // استهداف طلاب فصل معين داخل التبويب النشط
         targets = studentsInActiveTab.filter(function(student) {
-            return student.class === selectedClass;
+            return student.class === selectedClass && student.stage === selectedStage;
         });
     } else { // applyTo === 'all'
-        // استهداف جميع الطلاب في التبويب النشط
-        targets = studentsInActiveTab;
+        // استهداف جميع الطلاب في التبويب النشط والمرحلة المختارة فقط
+        targets = studentsInActiveTab.filter(function(student) {
+            return student.stage === selectedStage;
+        });
     }
 
     if (targets.length === 0) {
-        showAlert('لا يوجد طلاب مستهدفون لتطبيق النقاط عليهم في هذا التبويب والفلاتر المختارة.', 'warning');
+        const stageName = stageClasses[selectedStage]?.name || selectedStage;
+        if (applyTo === 'all') {
+            showAlert(`لا يوجد طلاب في المرحلة ${stageName} في تبويب ${activeTab}`, 'warning');
+        } else if (applyTo === 'class') {
+            showAlert(`لا يوجد طلاب في الفصل ${selectedClass} في المرحلة ${stageName} في تبويب ${activeTab}`, 'warning');
+        } else {
+            showAlert('لا يوجد طلاب مستهدفون لتطبيق النقاط عليهم في هذا التبويب والفلاتر المختارة.', 'warning');
+        }
         return;
     }
 
     const change = operation === 'add' ? points : -points;
+    const stageName = stageClasses[selectedStage]?.name || selectedStage;
 
     targets.forEach(function(student) {
         if (!student.history) { student.history = []; }
@@ -850,19 +865,19 @@ function handleBulkPoints(e) {
 
         if (existingRecordIndex > -1) {
             // تحديث السجل الموجود
-            student.history[existingRecordIndex].oldPoints = oldPoints; // قد تحتاج لتتبع النقطة قبل هذا التغيير تحديداً
-            student.history[existingRecordIndex].change += change; // دمج التغيير
+            student.history[existingRecordIndex].oldPoints = oldPoints;
+            student.history[existingRecordIndex].change += change;
             student.history[existingRecordIndex].newPoints = newPoints;
         } else {
             // إضافة سجل جديد
-        student.history.push({
-            date: date,
-            oldPoints: oldPoints,
-            change: change,
-            newPoints: newPoints,
-            reason: reason,
-            type: operation === 'add' ? 'إضافة نقاط' : 'خصم نقاط'
-        });
+            student.history.push({
+                date: date,
+                oldPoints: oldPoints,
+                change: change,
+                newPoints: newPoints,
+                reason: reason,
+                type: operation === 'add' ? 'إضافة نقاط' : 'خصم نقاط'
+            });
         }
         
         student.points = newPoints;
@@ -872,10 +887,20 @@ function handleBulkPoints(e) {
     saveChangesToServer(students);
 
     closeModal('bulkPointsModal');
-    // لا نمسح selectedStudents هنا، بل نتركها كما هي لتعكس التحديدات في التبويب الحالي
-    displayStudents(); // إعادة عرض الطلاب في التبويب النشط
-    showAlert(`تم تطبيق ${operation === 'add' ? 'إضافة' : 'خصم'} ${points} نقطة على ${targets.length} طالب في تبويب ${activeTab}`, 'success');
-    updateSelectAllState(); // تحديث حالة تحديد الكل بعد التغيير
+    displayStudents();
+    
+    // تحديث رسالة النجاح لتشمل المرحلة والفصل
+    let successMessage = '';
+    if (applyTo === 'all') {
+        successMessage = `تم تطبيق ${operation === 'add' ? 'إضافة' : 'خصم'} ${points} نقطة على ${targets.length} طالب في المرحلة ${stageName} (تبويب ${activeTab})`;
+    } else if (applyTo === 'class') {
+        successMessage = `تم تطبيق ${operation === 'add' ? 'إضافة' : 'خصم'} ${points} نقطة على ${targets.length} طالب في الفصل ${selectedClass} في المرحلة ${stageName} (تبويب ${activeTab})`;
+    } else {
+        successMessage = `تم تطبيق ${operation === 'add' ? 'إضافة' : 'خصم'} ${points} نقطة على ${targets.length} طالب محدد (تبويب ${activeTab})`;
+    }
+    
+    showAlert(successMessage, 'success');
+    updateSelectAllState();
 }
 
 // دالة حذف طالب واحد (تستخدم deleteSelectedStudents)
